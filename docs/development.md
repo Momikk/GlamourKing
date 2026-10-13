@@ -27,14 +27,14 @@ $env:DALAMUD_HOME = '你的 Dalamud 开发程序集目录'
 https://raw.githubusercontent.com/Momikk/DalamudPlugins/main/pluginmaster.json
 ```
 
-随后在 `/xlplugins` 中刷新插件列表，搜索“幻化之王”或 `GlamourKing` 并安装。此清单发布的是 API 15 基准版本，安装包位于仓库的 `dist/`。同一版本请只采用仓库安装或开发插件加载其中一种方式。
+随后在 `/xlplugins` 中刷新插件列表，搜索“套装之王”或 `SuitKing` 并安装。此清单发布的是 API 15 基准版本，安装包位于仓库的 `dist/`。同一版本请只采用仓库安装或开发插件加载其中一种方式。
 
 ### 本地开发插件加载
 
 1. 输入 `/xlsettings`，进入 Experimental / 实验性设置，将输出目录中 `GlamourKing.dll` 的完整路径添加到 Dev Plugin Locations / 开发插件位置。
-2. 输入 `/xlplugins`，在开发插件页找到“幻化之王”并启用。
+2. 输入 `/xlplugins`，在开发插件页找到“套装之王”并启用。
 3. 打开旅馆内的幻化柜，确认测试窗口显示“已打开”；关闭柜子，确认窗口收起。
-4. 用 `/glamking` 手动打开测试窗口；用 `/xllog` 查看加载、柜子打开/关闭及卸载日志。
+4. 用 `/suitking` 手动打开测试窗口；用 `/xllog` 查看加载、柜子打开/关闭及卸载日志。
 
 应使用与当前游戏分发渠道匹配的 Dalamud 程序集。框架 API 相同不等于所有原生功能跨区服兼容；此版本仅使用公开的界面包装器。
 

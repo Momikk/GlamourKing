@@ -10,7 +10,7 @@ namespace GlamourKing;
 public sealed class Plugin : IDalamudPlugin
 {
     public const string DresserAddonName = "MiragePrismPrismBox";
-    private const string CommandName = "/glamking";
+    private const string CommandName = "/suitking";
 
     [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
     [PluginService] internal static ICommandManager CommandManager { get; private set; } = null!;
@@ -32,14 +32,16 @@ public sealed class Plugin : IDalamudPlugin
 
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
-            HelpMessage = "打开或关闭幻化之王测试窗口。",
+            HelpMessage = "打开或关闭套装之王测试窗口。",
         });
+
+        CommandManager.AddHandler("/sking", new CommandInfo(OnCommand) { HelpMessage = "打开或关闭套装之王测试窗口。" });
 
         PluginInterface.UiBuilder.Draw += windowSystem.Draw;
         PluginInterface.UiBuilder.OpenMainUi += OpenMainUi;
         Framework.Update += OnFrameworkUpdate;
 
-        Log.Information("GlamourKing baseline loaded (API {ApiLevel}).", PluginInterface.Manifest.DalamudApiLevel);
+        Log.Information("SuitKing baseline loaded (API {ApiLevel}).", PluginInterface.Manifest.DalamudApiLevel);
     }
 
     public void Dispose()
@@ -48,8 +50,9 @@ public sealed class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.Draw -= windowSystem.Draw;
         PluginInterface.UiBuilder.OpenMainUi -= OpenMainUi;
         CommandManager.RemoveHandler(CommandName);
+        CommandManager.RemoveHandler("/sking");
         windowSystem.RemoveAllWindows();
-        Log.Information("GlamourKing baseline unloaded.");
+        Log.Information("SuitKing baseline unloaded.");
     }
 
     private void OnFrameworkUpdate(IFramework framework)

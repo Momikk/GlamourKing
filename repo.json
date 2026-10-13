@@ -1,10 +1,10 @@
 [
   {
     "Author": "Momikk",
-    "Name": "幻化之王 GlamourKing",
+    "Name": "套装之王 SuitKing",
     "InternalName": "GlamourKing",
-    "AssemblyVersion": "0.1.0.2",
-    "Description": "基准版本：检测幻化柜界面，并显示测试窗口。可通过 /glamking 手动打开。",
+    "AssemblyVersion": "0.1.0.3",
+    "Description": "基准版本：检测幻化柜界面，并显示测试窗口。可通过 /suitking 或 /sking 手动打开。",
     "ApplicableVersion": "any",
     "RepoUrl": "https://github.com/Momikk/GlamourKing",
     "Tags": [
@@ -20,11 +20,11 @@
     "IconUrl": "https://raw.githubusercontent.com/Momikk/GlamourKing/main/images/icon.png",
     "Punchline": "打开幻化柜时显示测试窗口。",
     "AcceptsFeedback": true,
-    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/GlamourKing/main/dist/GlamourKing-0.1.0.2.zip",
-    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/GlamourKing/main/dist/GlamourKing-0.1.0.2.zip",
+    "LastUpdate": 1791904038,
     "IsHide": false,
-    "IsTestingExclusive": false,
-    "LastUpdate": 1791897718,
-    "DownloadCount": 0
+    "DownloadCount": 0,
+    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/GlamourKing/main/dist/GlamourKing-0.1.0.3.zip",
+    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/GlamourKing/main/dist/GlamourKing-0.1.0.3.zip",
+    "IsTestingExclusive": false
   }
 ]
