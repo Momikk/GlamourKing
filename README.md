@@ -59,3 +59,7 @@ https://raw.githubusercontent.com/Momikk/DalamudPlugins/main/pluginmaster.json
 统一清单由独立仓库 [Momikk/DalamudPlugins](https://github.com/Momikk/DalamudPlugins) 维护。此项目维护幻化之王的源码、图标、安装包和专用 `repo.json`，不再保存统一 `pluginmaster.json`。
 
 请使用独立仓库的统一库链，并移除旧的 `GlamourKing/pluginmaster.json` 或 `GlamourKing/repo.json` 来源，避免重复配置。新插件发布后加入独立仓库清单，统一链接保持不变。
+
+## 许可证
+
+Copyright (C) 2026 Momikk。幻化之王 GlamourKing 采用 [GNU Affero General Public License v3.0（AGPL-3.0-only）](LICENSE) 授权。完整许可证见 LICENSE 文件。
