@@ -32,7 +32,7 @@ $env:DALAMUD_HOME = '你的 Dalamud 开发程序集目录'
 在 `/xlsettings` → 插件 → 第三方插件中添加以下链接，启用该仓库并保存设置：
 
 ```text
-https://raw.githubusercontent.com/Momikk/GlamourKing/main/pluginmaster.json
+https://raw.githubusercontent.com/Momikk/DalamudPlugins/main/pluginmaster.json
 ```
 
 随后在 `/xlplugins` 中刷新插件列表，搜索“幻化之王”或 `GlamourKing` 并安装。此清单发布的是 API 15 基准版本，安装包位于仓库的 `dist/`。同一版本请只采用仓库安装或开发插件加载其中一种方式。
@@ -56,6 +56,6 @@ https://raw.githubusercontent.com/Momikk/GlamourKing/main/pluginmaster.json
 
 ## Momikk 统一插件仓库
 
-统一安装入口为 `pluginmaster.json`，收录 Momikk 名下已发布且有有效安装包的插件。`repo.json` 保留为幻化之王专用入口。请只启用其中一条，避免重复来源。
+统一清单由独立仓库 [Momikk/DalamudPlugins](https://github.com/Momikk/DalamudPlugins) 维护。此项目维护幻化之王的源码、图标、安装包和专用 `repo.json`，不再保存统一 `pluginmaster.json`。
 
-当前收录：幻化之王 0.1.0.1（API 15），已加入王冠斗篷图标。AllaganMarket 尚未发布可安装包，待完成发布后加入统一清单。新增插件时保留各自的 InternalName、作者、项目链接和下载地址，在统一数组追加相应清单；统一库链无需更换。
+请使用独立仓库的统一库链，并移除旧的 `GlamourKing/pluginmaster.json` 或 `GlamourKing/repo.json` 来源，避免重复配置。新插件发布后加入独立仓库清单，统一链接保持不变。
