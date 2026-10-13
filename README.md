@@ -1,6 +1,8 @@
 # 幻化之王 / GlamourKing
 
-FFXIV Dalamud 插件，基准版本 `0.1.0.0`。使用 API 15、Dalamud.NET.Sdk 15.0.0 和 .NET 10。
+<img src="images/icon.png" alt="幻化之王图标" width="128" />
+
+FFXIV Dalamud 插件，基准版本 `0.1.0.1`。使用 API 15、Dalamud.NET.Sdk 15.0.0 和 .NET 10。
 
 玩家打开幻化柜时，自动显示测试窗口；关闭幻化柜时收起窗口。在柜子仍打开时手动关闭测试窗口，不会每帧重新弹出，下次打开柜子时才再次显示。插件在幻化柜已打开时加载，也会显示测试窗口。聊天命令 `/glamking` 可手动开关窗口，插件管理器的主界面按钮也可打开。
 
@@ -30,7 +32,7 @@ $env:DALAMUD_HOME = '你的 Dalamud 开发程序集目录'
 在 `/xlsettings` → 插件 → 第三方插件中添加以下链接，启用该仓库并保存设置：
 
 ```text
-https://raw.githubusercontent.com/Momikk/GlamourKing/main/repo.json
+https://raw.githubusercontent.com/Momikk/GlamourKing/main/pluginmaster.json
 ```
 
 随后在 `/xlplugins` 中刷新插件列表，搜索“幻化之王”或 `GlamourKing` 并安装。此清单发布的是 API 15 基准版本，安装包位于仓库的 `dist/`。同一版本请只采用仓库安装或开发插件加载其中一种方式。
@@ -51,3 +53,9 @@ https://raw.githubusercontent.com/Momikk/GlamourKing/main/repo.json
 编译成功只能确认 API 和打包兼容，实际游戏加载与打开柜子的行为需在游戏中验收。
 
 本次基准版的构建与验证记录见 [docs/validation.md](docs/validation.md)。
+
+## Momikk 统一插件仓库
+
+统一安装入口为 `pluginmaster.json`，收录 Momikk 名下已发布且有有效安装包的插件。`repo.json` 保留为幻化之王专用入口。请只启用其中一条，避免重复来源。
+
+当前收录：幻化之王 0.1.0.1（API 15），已加入王冠斗篷图标。AllaganMarket 尚未发布可安装包，待完成发布后加入统一清单。新增插件时保留各自的 InternalName、作者、项目链接和下载地址，在统一数组追加相应清单；统一库链无需更换。

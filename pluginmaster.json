@@ -1,0 +1,30 @@
+[
+  {
+    "Author": "Momikk",
+    "Name": "幻化之王",
+    "InternalName": "GlamourKing",
+    "AssemblyVersion": "0.1.0.1",
+    "Description": "基准版本：检测幻化柜界面，并显示测试窗口。可通过 /glamking 手动打开。",
+    "ApplicableVersion": "any",
+    "RepoUrl": "https://github.com/Momikk/GlamourKing",
+    "Tags": [
+      "glamour",
+      "dresser",
+      "test"
+    ],
+    "DalamudApiLevel": 15,
+    "LoadRequiredState": 0,
+    "LoadSync": false,
+    "CanUnloadAsync": false,
+    "LoadPriority": 0,
+    "IconUrl": "https://raw.githubusercontent.com/Momikk/GlamourKing/main/images/icon.png",
+    "Punchline": "打开幻化柜时显示测试窗口。",
+    "AcceptsFeedback": true,
+    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/GlamourKing/main/dist/GlamourKing-0.1.0.1.zip",
+    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/GlamourKing/main/dist/GlamourKing-0.1.0.1.zip",
+    "IsHide": false,
+    "IsTestingExclusive": false,
+    "LastUpdate": 1791894846,
+    "DownloadCount": 0
+  }
+]
