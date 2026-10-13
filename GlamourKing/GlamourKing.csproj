@@ -1,8 +1,8 @@
 <Project Sdk="Dalamud.NET.Sdk/15.0.0">
   <PropertyGroup>
-    <Version>0.1.0.1</Version>
+    <Version>0.1.0.2</Version>
     <Author>Momikk</Author>
-    <Name>幻化之王</Name>
+    <Name>幻化之王 GlamourKing</Name>
     <Punchline>打开幻化柜时显示测试窗口。</Punchline>
     <Description>基准版本：检测幻化柜界面，并显示测试窗口。可通过 /glamking 手动打开。</Description>
     <RepoUrl>https://github.com/Momikk/GlamourKing</RepoUrl>
