@@ -3,9 +3,9 @@ using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using GlamourKing.Windows;
+using SuitKing.Windows;
 
-namespace GlamourKing;
+namespace SuitKing;
 
 public sealed class Plugin : IDalamudPlugin
 {
@@ -18,7 +18,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
 
-    private readonly WindowSystem windowSystem = new("GlamourKing");
+    private readonly WindowSystem windowSystem = new("SuitKing");
     private readonly TestWindow testWindow;
 
     public bool IsDresserOpen { get; private set; }

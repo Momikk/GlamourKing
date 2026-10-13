@@ -2,14 +2,14 @@ using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
 
-namespace GlamourKing.Windows;
+namespace SuitKing.Windows;
 
 internal sealed class TestWindow : Window
 {
     private readonly Plugin plugin;
 
     public TestWindow(Plugin plugin)
-        : base("套装之王 · 测试窗口###GlamourKingTest")
+        : base("套装之王 · 测试窗口###SuitKingTest")
     {
         this.plugin = plugin;
         Size = new Vector2(440, 230);

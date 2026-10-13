@@ -27,7 +27,7 @@ try {
         throw "当前 Dalamud API 是 $apiLevel，此基准版本要求 API 15。"
     }
 
-    & dotnet build (Join-Path $PSScriptRoot 'GlamourKing\GlamourKing.csproj') -c $Configuration
+    & dotnet build (Join-Path $PSScriptRoot 'SuitKing\SuitKing.csproj') -c $Configuration
     if ($LASTEXITCODE -ne 0) { throw "编译失败，退出码 $LASTEXITCODE。" }
 }
 finally {

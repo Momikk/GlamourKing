@@ -15,7 +15,7 @@ $env:DALAMUD_HOME = '你的 Dalamud 开发程序集目录'
 .\build.ps1 -Configuration Release
 ```
 
-输出 DLL 和生成的 manifest 位于 `GlamourKing/bin/Release/`；SDK 打包结果位于 `GlamourKing/bin/Release/GlamourKing/latest.zip`。不要把 Dalamud 自带程序集复制进插件分发包。
+输出 DLL 和生成的 manifest 位于 `SuitKing/bin/Release/`；SDK 打包结果位于 `SuitKing/bin/Release/SuitKing/latest.zip`。不要把 Dalamud 自带程序集复制进插件分发包。
 
 ## 加载与验收
 
@@ -31,7 +31,7 @@ https://raw.githubusercontent.com/Momikk/DalamudPlugins/main/pluginmaster.json
 
 ### 本地开发插件加载
 
-1. 输入 `/xlsettings`，进入 Experimental / 实验性设置，将输出目录中 `GlamourKing.dll` 的完整路径添加到 Dev Plugin Locations / 开发插件位置。
+1. 输入 `/xlsettings`，进入 Experimental / 实验性设置，将输出目录中 `SuitKing.dll` 的完整路径添加到 Dev Plugin Locations / 开发插件位置。
 2. 输入 `/xlplugins`，在开发插件页找到“套装之王”并启用。
 3. 打开旅馆内的幻化柜，确认测试窗口显示“已打开”；关闭柜子，确认窗口收起。
 4. 用 `/suitking` 手动打开测试窗口；用 `/xllog` 查看加载、柜子打开/关闭及卸载日志。

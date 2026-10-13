@@ -2,11 +2,11 @@
   {
     "Author": "Momikk",
     "Name": "套装之王 SuitKing",
-    "InternalName": "GlamourKing",
-    "AssemblyVersion": "0.1.0.3",
+    "InternalName": "SuitKing",
+    "AssemblyVersion": "0.1.0.4",
     "Description": "基准版本：检测幻化柜界面，并显示测试窗口。可通过 /suitking 或 /sking 手动打开。",
     "ApplicableVersion": "any",
-    "RepoUrl": "https://github.com/Momikk/GlamourKing",
+    "RepoUrl": "https://github.com/Momikk/SuitKing",
     "Tags": [
       "glamour",
       "dresser",
@@ -17,14 +17,14 @@
     "LoadSync": false,
     "CanUnloadAsync": false,
     "LoadPriority": 0,
-    "IconUrl": "https://raw.githubusercontent.com/Momikk/GlamourKing/main/images/icon.png",
+    "IconUrl": "https://raw.githubusercontent.com/Momikk/SuitKing/main/images/icon.png",
     "Punchline": "打开幻化柜时显示测试窗口。",
     "AcceptsFeedback": true,
-    "LastUpdate": 1791904038,
-    "IsHide": false,
+    "IsTestingExclusive": false,
+    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.4.zip",
+    "LastUpdate": 1791904440,
+    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.4.zip",
     "DownloadCount": 0,
-    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/GlamourKing/main/dist/GlamourKing-0.1.0.3.zip",
-    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/GlamourKing/main/dist/GlamourKing-0.1.0.3.zip",
-    "IsTestingExclusive": false
+    "IsHide": false
   }
 ]
