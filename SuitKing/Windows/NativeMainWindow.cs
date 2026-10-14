@@ -19,6 +19,7 @@ internal sealed unsafe class NativeMainWindow(Plugin plugin) : NativeAddon
     private OutfitStorageState? selectedState = OutfitStorageState.CanComplete;
     private IReadOnlyList<OutfitEquipment>? lastEquipment;
     private bool lastHide;
+    private bool lastReady;
     private bool dirty = true;
     private static readonly (string Label, OutfitStorageState? State)[] Categories =
     [ ("全部", null), ("已保存", OutfitStorageState.Saved), ("可补齐", OutfitStorageState.CanComplete),
@@ -93,6 +94,8 @@ internal sealed unsafe class NativeMainWindow(Plugin plugin) : NativeAddon
             OptionsList = [], AutoResetScroll = false, ItemSpacing = 0,
             Position = origin + new Vector2(0, 88), Size = new Vector2(width, ContentSize.Y - 120),
         };
+        list.NoResultsTextNode.TextId = 0;
+        list.NoResultsTextNode.String = "等待套装与过滤数据加载。";
         AddNode(list);
         footer = new TextNode
         {
@@ -120,10 +123,11 @@ internal sealed unsafe class NativeMainWindow(Plugin plugin) : NativeAddon
         if (completeButton is not null)
         {
             completeButton.String = plugin.Completion.IsRunning ? "停止补齐" : "自动补齐";
+            completeButton.IsEnabled = plugin.Completion.IsRunning || (plugin.IsDresserOpen && plugin.Inventory.IsComplete && plugin.Inventory.AreOutfitsLoaded);
             hideCheckbox!.IsEnabled = !plugin.Completion.IsRunning;
         }
         if (dirty || lastCompletionStatus != plugin.Completion.Status || !ReferenceEquals(lastEquipment, plugin.Inventory.Equipment)
-            || lastHide != plugin.Config.HideGearsetItems)
+            || lastHide != plugin.Config.HideGearsetItems || lastReady != (plugin.Inventory.IsComplete && plugin.Inventory.AreOutfitsLoaded))
             RefreshContents();
     }
 
@@ -155,9 +159,10 @@ internal sealed unsafe class NativeMainWindow(Plugin plugin) : NativeAddon
             rows.Add(new(null, item));
         }
         // Keep the scroll position and reuse native row nodes on the one-second data refresh.
-        if (!list.OptionsList.SequenceEqual(rows)) list.OptionsList = rows;
+
         list.NoResultsTextNode.String = !plugin.IsDresserOpen ? "请打开投影台以查看装备。"
             : inventory.IsComplete && inventory.AreOutfitsLoaded ? "这个类别暂时没有装备。" : "等待套装数据加载。";
+        if (!list.OptionsList.SequenceEqual(rows)) list.OptionsList = rows;
         var hidden = hide ? inventory.Equipment.Count(item => item.RegisteredToGearset == true) : 0;
         footer.String = inventory.IsComplete && inventory.AreOutfitsLoaded
             ? $"显示 {matches.Length} 件" + (hide ? $" · 已隐藏 {hidden} 件" : "")
@@ -166,6 +171,7 @@ internal sealed unsafe class NativeMainWindow(Plugin plugin) : NativeAddon
         lastCompletionStatus = plugin.Completion.Status;
         lastEquipment = inventory.Equipment;
         lastHide = hide;
+        lastReady = inventory.IsComplete && inventory.AreOutfitsLoaded;
         dirty = false;
     }
 

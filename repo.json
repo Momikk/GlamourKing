@@ -3,7 +3,7 @@
     "Author": "Momikk",
     "Name": "套装之王 SuitKing",
     "InternalName": "SuitKing",
-    "AssemblyVersion": "0.1.0.14",
+    "AssemblyVersion": "0.1.0.15",
     "Description": "使用游戏原生 UI 汇总物品栏与兵装库中的套装幻影化装备，采用紧凑行距、左侧装备套装过滤和单击分类；默认打开可补齐，支持按钮批量补入已有套装，原生装备选择列表中可补齐名称标红。可通过 /suitking 或 /sking 打开。",
     "ApplicableVersion": "any",
     "RepoUrl": "https://github.com/Momikk/SuitKing",
@@ -21,11 +21,11 @@
     "Punchline": "汇总物品栏和兵装库中支持套装幻影化的装备。",
     "AcceptsFeedback": true,
     "DownloadCount": 0,
-    "LastUpdate": 1791988613,
+    "LastUpdate": 1791989966,
     "IsTestingExclusive": false,
-    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.14.zip",
-    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.14.zip",
+    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.15.zip",
+    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.15.zip",
     "IsHide": false,
-    "Changelog": "版本 0.1.0.14\n· 补上最终确认：勾选套装幻影化后点击是。\n· 等待勾选生效，防止重复确认或提交。\n· 最终确认前重新核对装备、套装与批次。\n· 保存完成后再处理下一件；第四步待实机验收。\nEnglish\n· Check Store as Outfit Glamour, then click final Yes.\n· Wait for checkbox processing and prevent duplicate confirmation.\n· Revalidate items, outfit and batch before final confirmation.\n· Continue after storage completes; step four awaits validation."
+    "Changelog": "版本 0.1.0.15\n· 修复打开及补齐后刷新时短暂显示未过滤装备。\n· 登记与分类完成后更新 UI，加载中保留上次结果。\n· 过滤开启时隐藏未知登记，关闭后显示全部候选。\n· 首次可能等待约一秒；实际稳定显示待游戏验证。\nEnglish\n· Prevent transient unfiltered rows during dresser refreshes.\n· Publish complete snapshots and retain prior results while loading.\n· Hide unknown registrations when filtering; show all when disabled.\n· Initial loading may take about one second; stability awaits validation."
   }
 ]

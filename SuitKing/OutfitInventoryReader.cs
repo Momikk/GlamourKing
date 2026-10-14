@@ -24,6 +24,7 @@ internal sealed class OutfitInventoryReader
         type = InventoryType.Invalid;
         return false;
     }
+    private readonly GearsetSnapshotGate gearsetGate = new();
     private OutfitCatalog? catalog;
     public IReadOnlyList<OutfitEquipment> Equipment { get; private set; } = [];
     public string Status { get; private set; } = "打开投影台后读取物品栏和兵装库。";
@@ -33,6 +34,7 @@ internal sealed class OutfitInventoryReader
 
     public void Clear()
     {
+        gearsetGate.Clear();
         Equipment = [];
         IsComplete = false;
         AreOutfitsLoaded = false;
@@ -57,6 +59,27 @@ internal sealed class OutfitInventoryReader
         }
         catalog ??= new(Plugin.Data.GetExcelSheet<MirageStoreSetItemLookup>(), Plugin.Data.GetExcelSheet<Item>());
         var gearsets = RaptureGearsetModule.Instance();
+        // Read saved gearset IDs once. Unlike per-item native lookup, this does not depend
+        // on transient item-row/icon loading during dresser refreshes. HQ identities differ.
+        if (gearsets == null)
+        {
+            IsComplete = false;
+            Status = "等待装备套装登记数据加载，保留上次完整结果。";
+            return;
+        }
+        var registeredIds = new HashSet<uint>();
+        foreach (ref var set in gearsets->Entries)
+        {
+            if ((set.Flags & RaptureGearsetModule.GearsetFlag.Exists) == 0) continue;
+            foreach (ref var piece in set.Items)
+                if (piece.ItemId != 0) registeredIds.Add(piece.ItemId);
+        }
+        if (!gearsetGate.IsStable(registeredIds))
+        {
+            IsComplete = false;
+            Status = "等待装备套装过滤稳定，保留上次完整结果。";
+            return;
+        }
         var entries = new List<InventoryEntry>();
         var missing = new List<string>();
         foreach (var (type, name) in Containers)
@@ -80,12 +103,19 @@ internal sealed class OutfitInventoryReader
                     continue;
                 entries.Add(new(item->ItemId,
                     (item->Flags & InventoryItem.ItemFlags.HighQuality) != 0, name, slot + 1, item->Condition,
-                    gearsets == null ? null : gearsets->IsItemRegisteredToGearset(item)));
+                    GearsetRegistration.IsRegistered(registeredIds, item->ItemId,
+                        (item->Flags & InventoryItem.ItemFlags.HighQuality) != 0)));
             }
         }
         catalog ??= new(Plugin.Data.GetExcelSheet<MirageStoreSetItemLookup>(), Plugin.Data.GetExcelSheet<Item>());
         var stored = DresserOutfitReader.Read();
         AreOutfitsLoaded = stored is not null;
+        IsComplete = missing.Count == 0;
+        if (!IsComplete || !AreOutfitsLoaded)
+        {
+            Status = "等待物品、套装及过滤数据加载，保留上次完整结果。";
+            return;
+        }
         Equipment = OutfitListBuilder.Build(entries, catalog.Get).Select(item => item with
         {
             Assessment = OutfitStateEvaluator.Evaluate(item.ItemId, catalog.Get(item.ItemId)?.Sets, stored),

@@ -30,8 +30,25 @@ internal static class OutfitDisplayFilter
 {
     public static IReadOnlyList<OutfitEquipment> Apply(IEnumerable<OutfitEquipment> equipment,
         bool hideGearsetItems, string search)
-        => equipment.Where(item => (!hideGearsetItems || item.RegisteredToGearset != true)
+        => equipment.Where(item => (!hideGearsetItems || item.RegisteredToGearset == false)
             && (string.IsNullOrWhiteSpace(search)
                 || item.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
                 || item.SetNames.Contains(search, StringComparison.OrdinalIgnoreCase))).ToArray();
+}
+
+internal static class GearsetRegistration
+{
+    internal static bool IsRegistered(IReadOnlySet<uint> registeredIds, uint itemId, bool highQuality)
+        => registeredIds.Contains(itemId + (highQuality ? 1_000_000u : 0u));
+}
+internal sealed class GearsetSnapshotGate
+{
+    private HashSet<uint>? previous;
+    internal bool IsStable(IReadOnlySet<uint> ids)
+    {
+        var stable = previous is not null && previous.SetEquals(ids);
+        previous = new HashSet<uint>(ids);
+        return stable;
+    }
+    internal void Clear() => previous = null;
 }

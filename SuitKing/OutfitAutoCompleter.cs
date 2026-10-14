@@ -119,6 +119,7 @@ internal sealed unsafe class OutfitAutoCompleter(Plugin plugin)
         if (GetAddon(ConvertName) != null || GetAddon(ConfirmName) != null || GetAddon("SelectYesno") != null)
         { Stop("出现了其他或尚未关闭的窗口。"); return; }
         plugin.Inventory.Refresh();
+        if (!plugin.Inventory.IsComplete || !plugin.Inventory.AreOutfitsLoaded) return;
         while (pending.TryDequeue(out var target))
         {
             if (completedKeys.Contains(target.Key)) continue;
@@ -222,6 +223,7 @@ internal sealed unsafe class OutfitAutoCompleter(Plugin plugin)
             || !Plugin.Data.GetExcelSheet<MirageStoreSetItem>().TryGetRow(outfitId, out var set))
             throw new InvalidOperationException("选中的套装与已有记录不一致。");
         plugin.Inventory.Refresh();
+        if (!plugin.Inventory.IsComplete || !plugin.Inventory.AreOutfitsLoaded) return;
         var pieces = OutfitCatalog.PiecesInOrder(set);
         submitted.Clear();
         if (addon->AtkValues == null || addon->AtkValuesCount < 21 + data->NumItemsInSet * 7) return;

@@ -42,8 +42,8 @@ var copies = new[] { new OutfitEquipment(10, "重复副本", false, "物品栏 1
     new OutfitEquipment(10, "重复副本", true, "物品栏 2", 1, 30000, "测试套装", false) };
 Check(OutfitDisplayFilter.Apply(copies, true, "").Single().HighQuality, "Filter uses per-copy registration instead of item-id membership");
 Check(OutfitDisplayFilter.Apply([copies[0]], true, "").Count == 0, "Fully filtered inventory is empty");
-Check(OutfitDisplayFilter.Apply([copies[1] with { RegisteredToGearset = null }], true, "").Count == 1,
-    "Unknown registration is not silently discarded");
+Check(OutfitDisplayFilter.Apply([copies[1] with { RegisteredToGearset = null }], true, "").Count == 0,
+    "Pending registration cannot leak unfiltered equipment into a hidden-gearset list");
 var setA = new OutfitDefinition(100, "套装甲", new uint[] { 10, 20 });
 var setB = new OutfitDefinition(200, "套装乙", new uint[] { 10, 30 });
 var partial = new StoredOutfit(100, new HashSet<uint> { 10 });
@@ -109,6 +109,20 @@ Check(!OutfitCompletionPolicy.CanConfirmFinalStorage(true, true, false), "Final 
 Check(!OutfitCompletionPolicy.CanConfirmFinalStorage(false, true, true), "Checked foreign final dialog is never accepted");
 Check(!OutfitCompletionPolicy.CanConfirmFinalStorage(true, false, true), "Final dialog needs a validated hand-in batch");
 Check(OutfitCompletionPolicy.CanConfirmFinalStorage(true, true, true), "Owned validated checked outfit can reach final Yes");
+IReadOnlySet<uint> savedGearsetIds = new HashSet<uint> { 10, 1_000_020 };
+Check(GearsetRegistration.IsRegistered(savedGearsetIds, 10, false), "Saved NQ gearset identity is hidden without an item-row lookup");
+Check(!GearsetRegistration.IsRegistered(savedGearsetIds, 10, true), "NQ membership does not accidentally hide an unregistered HQ copy");
+Check(GearsetRegistration.IsRegistered(savedGearsetIds, 20, true), "HQ gearset identity includes the game's HQ offset");
+Check(!GearsetRegistration.IsRegistered(savedGearsetIds, 20, false), "HQ membership does not hide an unregistered NQ copy");
+Check(OutfitDisplayFilter.Apply([copies[1] with { RegisteredToGearset = null }], false, "").Count == 1,
+    "Turning off the filter still displays pending gearset identities");
+var gearsetGate = new GearsetSnapshotGate();
+Check(!gearsetGate.IsStable(savedGearsetIds), "First registration sample waits before publishing an initial list");
+Check(gearsetGate.IsStable(savedGearsetIds), "A second consistent registration sample can publish the filtered list");
+Check(!gearsetGate.IsStable(new HashSet<uint>()), "A transient empty registration sample cannot publish an unfiltered list");
+Check(!gearsetGate.IsStable(savedGearsetIds) && gearsetGate.IsStable(savedGearsetIds), "Transient refresh recovers directly to the stable filtered snapshot");
+gearsetGate.Clear();
+Check(!gearsetGate.IsStable(savedGearsetIds), "Character/session reset cannot reuse old registration readiness");
 if (args.Length == 0) return;
 using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
 var nativePrompts = game.Excel.GetSheet<Addon>(Lumina.Data.Language.ChineseSimplified)

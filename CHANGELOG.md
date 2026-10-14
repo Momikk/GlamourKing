@@ -1,5 +1,26 @@
 # 更新记录
 
+## 0.1.0.15 — 2026-10-14
+
+· 修复勾选“隐去套装中的物品”时，打开投影台和补齐后刷新短暂显示未过滤装备的问题。<br>
+· 读取已保存装备套装的物品 ID 与 HQ/NQ 登记快照，连续一致后才发布完整装备分类结果。<br>
+· 数据尚未就绪时保留上一份完整结果，登记状态未知的装备不会在过滤开启时放行。<br>
+· 修正初始空列表的默认提示；首次打开可能等待约一秒，取消过滤仍可查看全部候选装备。<br>
+· 自动补齐等待完整过滤数据，避免使用中间刷新结果。
+
+国服 API 15 编译及 66 项回归/国服数据检查通过。截图中的刷新闪现为用户观察结果，本版实际打开投影台、取消过滤与连续补齐后的稳定显示仍待实机验证。
+
+### English
+
+· Prevent unfiltered equipment briefly appearing when opening or refreshing the dresser with hide-gearset enabled.<br>
+· Read saved gearset item IDs with HQ/NQ identities and publish a complete equipment snapshot only after consistent samples.<br>
+· Retain the last complete snapshot while loading, and exclude unknown registration from a filtered view.<br>
+· Correct the initial empty-list placeholder. First opening may wait about one second; disabling the filter still shows all candidates.<br>
+· Auto Complete waits for complete filtering data instead of using an intermediate refresh.
+
+CN API 15 compilation and 66 regression/CN-data checks pass. In-game stability when opening, toggling the filter and completing consecutive items still requires validation.
+
+
 ## 0.1.0.14 — 2026-10-14
 
 · 补上自动补齐的第四步：最终确认窗中先勾选“套装幻影化”，再点击“是”。<br>
