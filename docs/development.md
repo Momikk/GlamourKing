@@ -55,3 +55,11 @@ dotnet run --project tests/SuitKing.Tests.csproj -c Release -- '你的国服目�
 工具库源码固定在 vendor/KamiToolKit，出处与本地适配见 THIRD-PARTY-NOTICES.md。安装包须同时包含 SuitKing.KamiToolKit.dll、Assets 及 licenses/KamiToolKit-MIT.txt，不能只替换主 DLL。现有 ImGui 主窗口已移除。
 
 验收原生窗口的左侧勾选框、默认可补齐、四种分类和待确认、部位分组、24 px 图标、滚动和悬停；使用浅色/深色皮肤及不同缩放，重复开关投影台，点击关闭后用 /sking 重开，禁用/启用插件，确认无残留窗口。每秒自动刷新不应跳回列表顶部；切换分类应回到顶部。保留既有原生名称高亮检查。
+
+## 0.1.0.11 自动补齐
+
+OutfitAutoCompleter 只在用户点击后启动，Framework.Update 驱动 Next / Confirm / Convert / Result 状态。调用 AgentMiragePrismPrismSetConvert.Open 指定来源容器与格子；使用所属确认窗口的实际注册按钮事件，通用 SelectYesno 还须匹配国服的已有套装合并提示；最终点击原生 StoreAsGlamourButton。不开新套装，不直接调用 MirageManager.StoreExistingOutfit。
+
+整个批次使用物品 ID、容器、格子及 HQ 标志授权每份装备，提交前实时检查装备套装登记与耐久，校验 PrismBoxIndex、选中套装及缺失部位。原生 Filled 标记对应的所有提交装备必须属于批次。每阶段超时 15 秒，最终提交前先进入 Result，避免逐帧重复；等待部件解锁和源物品移出，并等待原生窗口关闭后才处理下一件。取消停止后续点击，不能撤回已发送的游戏操作。按钮运行时禁用过滤勾选框；关闭插件窗口和禁用插件均停止流程。
+
+验收需先用一件可补齐物品核对源格子、确认提示、棱晶数量、最终保存与成功计数，再检查多件、跨分页、装备套装过滤、品质/耐久限制、无棱晶、停止及关闭/重载。不要同时启用其他插件的自动收纳/自动确认功能参与验收。

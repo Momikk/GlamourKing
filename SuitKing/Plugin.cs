@@ -33,11 +33,13 @@ public sealed class Plugin : IAsyncDalamudPlugin
 
     internal OutfitInventoryReader Inventory { get; } = new();
     internal Configuration Config { get; }
+    internal OutfitAutoCompleter Completion { get; }
     public bool IsDresserOpen { get; private set; }
 
     public Plugin()
     {
         Config = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+        Completion = new OutfitAutoCompleter(this);
         highlighter = new NativeEquipmentHighlighter(this);
     }
 
@@ -67,6 +69,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
         isDisposing = true;
         await Framework.Run(() =>
         {
+            if (Completion.IsRunning) Completion.Stop("插件已禁用。");
             highlighter.Dispose();
             Framework.Update -= OnFrameworkUpdate;
             PluginInterface.UiBuilder.OpenMainUi -= OpenMainUi;
@@ -117,6 +120,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
         }
         selectionWasOpen = selectionOpen;
         mainWindow.TickPendingOpen();
+        Completion.Tick();
         if (!open || Environment.TickCount64 < nextScan)
             return;
         nextScan = Environment.TickCount64 + 1000;

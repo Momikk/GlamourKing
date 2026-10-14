@@ -17,6 +17,13 @@ internal sealed class OutfitInventoryReader
         (InventoryType.ArmoryNeck, "兵装库·颈部"), (InventoryType.ArmoryWrist, "兵装库·腕部"),
         (InventoryType.ArmoryRings, "兵装库·戒指"),
     ];
+    internal static bool TryResolveContainer(string name, out InventoryType type)
+    {
+        foreach (var entry in Containers)
+            if (entry.Name == name) { type = entry.Type; return true; }
+        type = InventoryType.Invalid;
+        return false;
+    }
     private OutfitCatalog? catalog;
     public IReadOnlyList<OutfitEquipment> Equipment { get; private set; } = [];
     public string Status { get; private set; } = "打开投影台后读取物品栏和兵装库。";

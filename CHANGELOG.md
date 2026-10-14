@@ -1,5 +1,28 @@
 # 更新记录
 
+## 0.1.0.11 — 2026-10-14
+
+- 在“隐去套装中的物品”旁新增“自动补齐”按钮，处理本次点击时未被过滤的可补齐装备。
+- 按打开套装幻影化、确认并入已有套装、点击幻影化的原生流程处理；不创建新套装、不取出装备。
+- 运行时可点击“停止补齐”，底部显示进度与原因；已提交的操作仍可能完成。
+- 每次提交核对物品栏格子、品质、套装缺少的部位与本次批次，防止原生自动选入被过滤或其他装备。
+- 需要修理的装备跳过；材料不足、确认窗口不匹配、关闭窗口、切换角色或等待超时会停止，不重复提交。
+- 确认套装已保存部件且源装备移出后才继续下一件。自动补齐消耗游戏要求的幻象棱晶。
+
+国服 API 15 编译与 49 项离线/国服数据检查通过。实际三步确认、自动收纳、进度及停止表现仍待游戏内验收。多套装物品由游戏选择目标，若选择结果不符合补齐条件则停止。
+
+### English
+
+- Add an Auto Complete button beside the hide-gearset checkbox, acting on completable items included when the batch starts.
+- Open the native outfit conversion, confirm merging into an existing outfit, and press Store as Glamour; never create new outfits or restore items.
+- Allow stopping subsequent actions and show progress or the stop reason. Already submitted requests may still finish.
+- Check inventory slot, quality, missing outfit part and batch membership for every hand-in, including native auto-filled items.
+- Skip items needing repair. Stop on insufficient prisms, unrelated confirmations, closing windows, character changes or timeouts without retrying submission.
+- Continue only after the outfit part is recorded and the source item leaves inventory. The operation consumes the game's required glamour prisms.
+
+CN API 15 compilation and 49 offline/CN-data checks pass. The three-step native flow, storage, progress and stopping still need in-game validation. The game chooses the destination for multi-outfit items; a non-completable choice stops the batch.
+
+
 ## 0.1.0.10 — 2026-10-14
 
 - 修复原生装备图标未随节点尺寸缩放，导致越过行分隔线并遮挡名称的问题。

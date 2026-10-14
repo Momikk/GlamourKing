@@ -8,6 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../SuitKing/OutfitStorageState.cs" Link="OutfitStorageState.cs" />
+    <Compile Include="../SuitKing/OutfitCompletionPolicy.cs" Link="OutfitCompletionPolicy.cs" />
     <Compile Include="../SuitKing/NativeNameHighlightPolicy.cs" Link="NativeNameHighlightPolicy.cs" />
     <Compile Include="../SuitKing/EquipmentParts.cs" Link="EquipmentParts.cs" />
     <Compile Include="../SuitKing/OutfitEquipment.cs" Link="OutfitEquipment.cs" />

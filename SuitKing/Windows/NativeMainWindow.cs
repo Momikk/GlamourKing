@@ -9,6 +9,8 @@ namespace SuitKing.Windows;
 internal sealed unsafe class NativeMainWindow(Plugin plugin) : NativeAddon
 {
     private CheckboxNode? hideCheckbox;
+    private TextButtonNode? completeButton;
+    private string lastCompletionStatus = "";
     private TabBarNode? tabs;
     private ListNode<NativeEquipmentRow, NativeEquipmentRowNode>? list;
     private TextNode? footer;
@@ -51,7 +53,7 @@ internal sealed unsafe class NativeMainWindow(Plugin plugin) : NativeAddon
         hideCheckbox = new CheckboxNode
         {
             String = "隐去套装中的物品", IsChecked = plugin.Config.HideGearsetItems,
-            Position = origin, Size = new Vector2(250, 24),
+            Position = origin, Size = new Vector2(160, 24),
             OnClick = value =>
             {
                 plugin.Config.HideGearsetItems = value;
@@ -60,6 +62,13 @@ internal sealed unsafe class NativeMainWindow(Plugin plugin) : NativeAddon
             }
         };
         AddNode(hideCheckbox);
+        completeButton = new TextButtonNode
+        {
+            String = "自动补齐", Position = origin + new Vector2(170, -2), Size = new Vector2(112, 28),
+            TextTooltip = "将未被过滤的可补齐装备加入已有套装，消耗幻象棱晶。再次点击可停止。",
+            OnClick = () => plugin.Completion.Toggle(),
+        };
+        AddNode(completeButton);
         tabs = new TabBarNode { Position = origin + new Vector2(0, 29), Size = new Vector2(width, 28) };
         AddNode(tabs);
         foreach (var (label, state) in Categories)
@@ -108,7 +117,12 @@ internal sealed unsafe class NativeMainWindow(Plugin plugin) : NativeAddon
     protected override void OnUpdate(AtkUnitBase* addon)
     {
         if (!IsOpen || list is null) return;
-        if (dirty || !ReferenceEquals(lastEquipment, plugin.Inventory.Equipment)
+        if (completeButton is not null)
+        {
+            completeButton.String = plugin.Completion.IsRunning ? "停止补齐" : "自动补齐";
+            hideCheckbox!.IsEnabled = !plugin.Completion.IsRunning;
+        }
+        if (dirty || lastCompletionStatus != plugin.Completion.Status || !ReferenceEquals(lastEquipment, plugin.Inventory.Equipment)
             || lastHide != plugin.Config.HideGearsetItems)
             RefreshContents();
     }
@@ -148,6 +162,8 @@ internal sealed unsafe class NativeMainWindow(Plugin plugin) : NativeAddon
         footer.String = inventory.IsComplete && inventory.AreOutfitsLoaded
             ? $"显示 {matches.Length} 件" + (hide ? $" · 已隐藏 {hidden} 件" : "")
             : plugin.IsDresserOpen ? inventory.Status : "请打开投影台以查看装备。";
+        if (!string.IsNullOrEmpty(plugin.Completion.Status)) footer.String = plugin.Completion.Status;
+        lastCompletionStatus = plugin.Completion.Status;
         lastEquipment = inventory.Equipment;
         lastHide = hide;
         dirty = false;
@@ -159,6 +175,9 @@ internal sealed unsafe class NativeMainWindow(Plugin plugin) : NativeAddon
     protected override void OnFinalize(AtkUnitBase* addon)
     {
         // Detach owned children before the game's finalizer; never keep native pointers across reopening.
+        if (plugin.Completion.IsRunning) plugin.Completion.Stop("套装之王窗口已关闭。");
+        completeButton?.Dispose();
+        completeButton = null;
         hideCheckbox?.Dispose();
         tabs?.Dispose();
         list?.Dispose();

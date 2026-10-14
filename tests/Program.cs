@@ -87,6 +87,21 @@ Check(NativeNameHighlightPolicy.Match("可补齐装备改良型", targets) == nu
 Check(NativeNameHighlightPolicy.Targets([highlightFixture[0], highlightFixture[1] with { Name = "可补齐装备" }]).Count == 0,
     "Ambiguous equal names with different states are not painted");
 Check(NativeNameHighlightPolicy.Targets([]).Count == 0, "Cleared snapshot has no native highlight targets");
+var sourceKey = new CompletionItemKey(10, 0, 1, false);
+var otherKey = new CompletionItemKey(20, 3200, 5, false);
+IReadOnlySet<CompletionItemKey> batch = new HashSet<CompletionItemKey> { sourceKey, otherKey };
+Check(OutfitCompletionPolicy.IsMergePrompt("发现了缺少此装备的现有套装，\n要将此装备并入其中吗？"), "Only the screenshot's existing-outfit merge prompt is accepted");
+Check(!OutfitCompletionPolicy.IsMergePrompt("要将此装备放入投影台吗？"), "Ordinary item storage confirmation is not auto-accepted");
+Check(!OutfitCompletionPolicy.IsMergePrompt("要删除此装备吗？"), "Unrelated destructive confirmation is rejected");
+Check(OutfitCompletionPolicy.ValidateHandIns(batch, [sourceKey], sourceKey, 1) is null, "One allowed missing piece with sufficient prisms can be submitted");
+Check(OutfitCompletionPolicy.ValidateHandIns(batch, [sourceKey, otherKey], sourceKey, 2) is null, "Native auto-filled pieces are allowed only when both belong to the batch");
+Check(OutfitCompletionPolicy.ValidateHandIns(batch, [], sourceKey, 2) is not null, "Empty native hand-in never submits");
+Check(OutfitCompletionPolicy.ValidateHandIns(batch, [otherKey], sourceKey, 2) is not null, "Native window must still contain the source equipment");
+Check(OutfitCompletionPolicy.ValidateHandIns(batch, [sourceKey, sourceKey], sourceKey, 2) is not null, "Duplicate source slot is rejected");
+Check(OutfitCompletionPolicy.ValidateHandIns(batch, [sourceKey, new(30, 0, 9, false)], sourceKey, 2) is not null, "Native auto-fill cannot consume filtered or unrelated equipment");
+Check(OutfitCompletionPolicy.ValidateHandIns(batch, [sourceKey with { HighQuality = true }], sourceKey, 2) is not null, "Replacing an NQ copy with HQ invalidates the source identity");
+Check(OutfitCompletionPolicy.ValidateHandIns(batch, [sourceKey, otherKey], sourceKey, 1) is not null, "Insufficient prisms block the whole native hand-in");
+Check(OutfitCompletionPolicy.ValidateHandIns(batch, [sourceKey, otherKey with { Slot = 6 }], sourceKey, 2) is not null, "Moving a piece to a different slot invalidates batch authorization");
 if (args.Length == 0) return;
 using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
 var items = game.Excel.GetSheet<Item>(Lumina.Data.Language.ChineseSimplified);
