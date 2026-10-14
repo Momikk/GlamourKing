@@ -37,3 +37,7 @@ dotnet run --project tests/SuitKing.Tests.csproj -c Release -- '你的国服目�
 打开投影台，核对标记装备跨物品栏与兵装库分类均出现在列表中，未标记的示例不出现。同物品 HQ/NQ 或多份副本应分别列出；移动、取出和收纳后应更新，切换游戏分页不应改变汇总范围。检查搜索、立即刷新、手动关闭、重新打开投影台、退出角色及插件禁用后命令注销。数据读取失败时查看 `/xllog`。
 
 构建与离线检查不等于游戏交互已经通过。记录见 [validation.md](validation.md)。
+
+## 发布更新记录
+
+每次发版同步维护 CHANGELOG.md、README 中的版本，以及专用 repo.json 和统一 pluginmaster.json 中的 Changelog 字段。更新记录面向使用者，说明新增、修复、使用变化和已知限制，区分离线验证与实机验收。
