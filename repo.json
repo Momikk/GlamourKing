@@ -26,6 +26,6 @@
     "LastUpdate": 1791945018,
     "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.6.zip",
     "IsHide": false,
-    "Changelog": "0.1.0.6：新增“隐藏套装中的物品”过滤，隐藏已登记到装备套装的装备，并保存选择。显示过滤后数量和隐藏数量，可与搜索同时使用。默认关闭，不改变游戏窗口自身的过滤状态。"
+    "Changelog": "版本 0.1.0.6\n新增“隐藏套装中的物品”过滤。\n隐藏已登记到装备套装的装备，并保存选择。\n显示过滤后与隐藏数量，可与搜索同时使用。\n默认关闭，不改变游戏窗口的过滤状态。"
   }
 ]
