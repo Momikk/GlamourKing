@@ -1,5 +1,24 @@
 # 更新记录
 
+## 0.1.0.12 — 2026-10-14
+
+· 修复自动补齐在“是否并入已有套装”提示前，过早检查补齐模式并停止的问题。<br>
+· 将补齐模式检查移至确认后的最终提交阶段；确认“是”之前仍核对来源装备、弹窗归属与提示文字。<br>
+· 等待确认窗口完成关闭，不再因关闭动画尚未结束而立即停止；确认只点击一次。<br>
+· 保留已有套装记录、缺少部位、批次装备及棱晶检查，避免创建新套装或重复提交。
+
+用户截图确认了先前的提前停止。编译与 49 项回归/国服数据检查通过；修复后的实际“是”和“幻影化”点击仍待游戏内验证。
+
+### English
+
+· Fix premature stopping before accepting the existing-outfit merge prompt.<br>
+· Check existing-outfit mode at final submission after confirmation, while retaining source, dialog ownership and prompt checks before Yes.<br>
+· Wait for the confirmation window to close instead of stopping during its closing animation; click confirmation only once.<br>
+· Retain existing-outfit, missing-part, batch-membership and prism checks to prevent new outfit creation or duplicate submission.
+
+The user's screenshot confirms the prior premature stop. Compilation and 49 regression/CN-data checks pass; the repaired native Yes and Store as Glamour clicks still need in-game validation.
+
+
 ## 0.1.0.11 — 2026-10-14
 
 - 在“隐去套装中的物品”旁新增“自动补齐”按钮，处理本次点击时未被过滤的可补齐装备。

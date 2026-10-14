@@ -150,8 +150,6 @@ internal sealed unsafe class OutfitAutoCompleter(Plugin plugin)
         if (data->SourceItemId % 1_000_000 != source.ItemId || (uint)data->SourceContainer != source.Container
             || data->SourceSlot != source.Slot || !data->EnableStoring || !IsCurrentEligible(source))
             throw new InvalidOperationException("套装窗口不再属于本次装备。");
-        // Never create a new outfit. Re-read the actual existing dresser record selected by the game.
-        if (!data->StoreInExistingOutfit) throw new InvalidOperationException("游戏未选择补齐已有套装。");
         return data;
     }
 
@@ -188,10 +186,12 @@ internal sealed unsafe class OutfitAutoCompleter(Plugin plugin)
     private void SubmitConversion()
     {
         if (GetAddon(ConfirmName) != null || GetAddon("SelectYesno") != null)
-        { Stop("确认窗口尚未关闭，未提交。"); return; }
+        { return; } // Wait for the owned confirmation close animation; never click Yes again.
         var addon = (AddonMiragePrismPrismSetConvert*)GetAddon(ConvertName);
         var data = OwnedData();
         if (addon == null || data == null || data->State != SetConvertAddonState.Ready) return;
+        // The merge choice is set by accepting Yes, not while the prompt is waiting.
+        if (!data->StoreInExistingOutfit) throw new InvalidOperationException("游戏未选择补齐已有套装，未提交。");
         var manager = MirageManager.Instance();
         if (data->PrismBoxIndex >= 800 || data->ItemSetCount == 0 || data->ItemSetCount > 5
             || data->SelectedSetIndex >= data->ItemSetCount || data->NumItemsInSet == 0 || data->NumItemsInSet > 9)
