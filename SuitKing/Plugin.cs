@@ -1,5 +1,5 @@
 using Dalamud.Game.Command;
-using Dalamud.Interface.Windowing;
+using KamiToolKit;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -7,7 +7,7 @@ using SuitKing.Windows;
 
 namespace SuitKing;
 
-public sealed class Plugin : IDalamudPlugin
+public sealed class Plugin : IAsyncDalamudPlugin
 {
     public const string DresserAddonName = "MiragePrismPrismBox";
     private const string SelectionAddonName = "MiragePrismPrismBoxCrystallize";
@@ -23,13 +23,13 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IDataManager Data { get; private set; } = null!;
     [PluginService] internal static IPlayerState Player { get; private set; } = null!;
 
-    private readonly WindowSystem windowSystem = new("SuitKing");
-    private readonly MainWindow mainWindow;
+    private NativeMainWindow mainWindow = null!;
     private readonly NativeEquipmentHighlighter highlighter;
     private long nextScan;
     private ulong characterId;
     private bool selectionWasOpen;
     private string? lastError;
+    private bool isDisposing;
 
     internal OutfitInventoryReader Inventory { get; } = new();
     internal Configuration Config { get; }
@@ -38,29 +38,43 @@ public sealed class Plugin : IDalamudPlugin
     public Plugin()
     {
         Config = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-        mainWindow = new MainWindow(this);
-        windowSystem.AddWindow(mainWindow);
         highlighter = new NativeEquipmentHighlighter(this);
-        CommandsAdd(CommandName);
-        CommandsAdd("/sking");
-        PluginInterface.UiBuilder.Draw += windowSystem.Draw;
-        PluginInterface.UiBuilder.OpenMainUi += OpenMainUi;
-        Framework.Update += OnFrameworkUpdate;
-        Log.Information("SuitKing loaded (API {ApiLevel}).", PluginInterface.Manifest.DalamudApiLevel);
+    }
+
+    public async Task LoadAsync(CancellationToken cancellationToken)
+    {
+        await KamiToolKitLibrary.InitializeAsync(PluginInterface);
+        cancellationToken.ThrowIfCancellationRequested();
+        await Framework.Run(() =>
+        {
+            mainWindow = new NativeMainWindow(this)
+            {
+                InternalName = "SuitKingNative", Title = "套装之王 SuitKing", Size = new(760, 520),
+            };
+            CommandsAdd(CommandName);
+            CommandsAdd("/sking");
+            PluginInterface.UiBuilder.OpenMainUi += OpenMainUi;
+            Framework.Update += OnFrameworkUpdate;
+            Log.Information("SuitKing native UI loaded (API {ApiLevel}).", PluginInterface.Manifest.DalamudApiLevel);
+        });
     }
 
     private void CommandsAdd(string command) => CommandManager.AddHandler(command,
         new CommandInfo(OnCommand) { HelpMessage = "打开或关闭套装之王套装装备列表。" });
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        highlighter.Dispose();
-        Framework.Update -= OnFrameworkUpdate;
-        PluginInterface.UiBuilder.Draw -= windowSystem.Draw;
-        PluginInterface.UiBuilder.OpenMainUi -= OpenMainUi;
-        CommandManager.RemoveHandler(CommandName);
-        CommandManager.RemoveHandler("/sking");
-        windowSystem.RemoveAllWindows();
+        isDisposing = true;
+        await Framework.Run(() =>
+        {
+            highlighter.Dispose();
+            Framework.Update -= OnFrameworkUpdate;
+            PluginInterface.UiBuilder.OpenMainUi -= OpenMainUi;
+            CommandManager.RemoveHandler(CommandName);
+            CommandManager.RemoveHandler("/sking");
+        });
+        if (mainWindow is not null) await mainWindow.DisposeAsync();
+        await KamiToolKitLibrary.DisposeAsync();
         Inventory.Clear();
     }
 
@@ -80,7 +94,7 @@ public sealed class Plugin : IDalamudPlugin
             nextScan = 0;
             IsDresserOpen = false;
             selectionWasOpen = false;
-            mainWindow.IsOpen = false;
+            mainWindow.Close();
         }
         var selectionOpen = contentId != 0 && IsVisible(SelectionAddonName);
         var open = contentId != 0 && (IsVisible(DresserAddonName) || selectionOpen);
@@ -90,7 +104,7 @@ public sealed class Plugin : IDalamudPlugin
             if (open) mainWindow.OpenOnCompletable();
             else
             {
-                mainWindow.IsOpen = false;
+                mainWindow.Close();
                 highlighter.Restore();
             }
             Inventory.Clear();
@@ -102,6 +116,7 @@ public sealed class Plugin : IDalamudPlugin
             nextScan = 0;
         }
         selectionWasOpen = selectionOpen;
+        mainWindow.TickPendingOpen();
         if (!open || Environment.TickCount64 < nextScan)
             return;
         nextScan = Environment.TickCount64 + 1000;
@@ -122,10 +137,22 @@ public sealed class Plugin : IDalamudPlugin
 
     internal void RequestRefresh() => nextScan = 0;
     internal void SaveConfiguration() => PluginInterface.SavePluginConfig(Config);
-    private void OnCommand(string command, string args)
+    private void OnCommand(string command, string args) => QueueWindowAction(window =>
     {
-        if (mainWindow.IsOpen) mainWindow.IsOpen = false;
-        else mainWindow.OpenOnCompletable();
+        if (window.IsOpen) window.Close();
+        else window.OpenOnCompletable();
+    });
+
+    private void OpenMainUi() => QueueWindowAction(window => window.OpenOnCompletable());
+
+    private void QueueWindowAction(Action<NativeMainWindow> action)
+    {
+        // UiBuilder events may run on the render thread. Native nodes belong to the game thread.
+        _ = Framework.Run(() =>
+        {
+            if (isDisposing || mainWindow is null) return;
+            try { action(mainWindow); }
+            catch (Exception exception) { Log.Error(exception, "SuitKing native window action failed."); }
+        });
     }
-    private void OpenMainUi() => mainWindow.OpenOnCompletable();
 }

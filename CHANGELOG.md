@@ -1,5 +1,26 @@
 # 更新记录
 
+## 0.1.0.9 — 2026-10-14
+
+- 主窗口改用 KamiToolKit 创建的游戏原生窗口、勾选框、分类标签、图标及滚动列表。
+- 使用紧凑行距：每行 28 像素，装备图标 24 像素；长名称省略显示，悬停查看完整信息。
+- 将“隐藏套装中的物品”移至左侧，保留过滤选择与默认“可补齐”分类。
+- 保留部位分组、自动刷新及原生装备选择列表的可补齐名称标红。
+- 改用异步加载和卸载，关闭窗口时释放自建节点；更新安装包，包含原生 UI 依赖与 MIT 许可证。
+
+国服 API 15 编译与离线回归检查通过。原生外观、滚动、主题/缩放及反复关闭与卸载仍待游戏内验收。
+
+### English
+
+- Replace the main window with game-native controls built with KamiToolKit, including tabs, checkbox, icons and a scrolling equipment list.
+- Use compact 28 px rows with 24 px icons; truncate long labels and show full details on hover.
+- Move the hide-gearset-items checkbox to the left; retain its saved choice and open on the Completable tab by default.
+- Preserve equipment grouping, automatic refresh and completable-item name highlighting in the game's equipment selector.
+- Load and unload asynchronously, release owned nodes when closing, and include the native UI dependency and its MIT license in the download.
+
+CN API 15 compilation and offline regression checks pass. Native rendering, scrolling, themes/scaling, repeated closing and unloading still require in-game validation.
+
+
 ## 0.1.0.8 — 2026-10-14
 
 - 将分类下拉框改为单击标签，每次打开默认显示“可补齐”。

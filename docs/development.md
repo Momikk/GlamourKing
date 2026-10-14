@@ -47,3 +47,11 @@ dotnet run --project tests/SuitKing.Tests.csproj -c Release -- '你的国服目�
 套装保存状态只在 MirageManager.PrismBoxLoaded 为真时读取。PrismBoxItemIds 中映射到 MirageStoreSetItem 的条目才作为套装，保留列顺序的 11 个部位用 IsSetSlotUnlocked 判断是否已保存，不把单独存放的散件算作套装。状态分类是对存储记录的结构判断，不保证物品当前满足品质、耐久或其他提交条件。游戏内验收以用户提供的“已保存相同套装”和“发现了缺少此装备的现有套装”示例为对照，并补充未建立的实际样例。
 
 0.1.0.8 的界面默认打开可补齐标签，装备图标/部位由本机 Item 表提供，不再显示品质和位置列，后者保留在名称悬停提示。原生标红监听 MiragePrismPrismBoxCrystallize 的 PreDraw 与 PreFinalize，遍历实时树列表渲染器查找装备名称；先保存原始文本和颜色，再临时修改显示。只从实时节点恢复自身改动，不解引用缓存指针。实机验收应确认补齐、翻页、滚动、过滤、选中行、关闭和禁用后的文字与颜色恢复。
+
+## 0.1.0.9 原生 UI
+
+主窗口为独立 NativeAddon，不向游戏投影台插入整张列表。通过 KamiToolKit 的原生 TabBarNode、CheckboxNode、ListNode 和 IconImageNode 构建；只创建可见行的节点并随滚动复用。窗口行高 28，图标 24，列宽固定布局，长名称使用原生 Ellipsis，完整内容放在提示中。使用 IAsyncDalamudPlugin，初始化等待工具库就绪，卸载先注销事件，再等待原生窗口关闭，最后释放工具库。窗口关闭动画完成前的重开请求延后处理。
+
+工具库源码固定在 vendor/KamiToolKit，出处与本地适配见 THIRD-PARTY-NOTICES.md。安装包须同时包含 SuitKing.KamiToolKit.dll、Assets 及 licenses/KamiToolKit-MIT.txt，不能只替换主 DLL。现有 ImGui 主窗口已移除。
+
+验收原生窗口的左侧勾选框、默认可补齐、四种分类和待确认、部位分组、24 px 图标、滚动和悬停；使用浅色/深色皮肤及不同缩放，重复开关投影台，点击关闭后用 /sking 重开，禁用/启用插件，确认无残留窗口。每秒自动刷新不应跳回列表顶部；切换分类应回到顶部。保留既有原生名称高亮检查。

@@ -3,8 +3,8 @@
     "Author": "Momikk",
     "Name": "套装之王 SuitKing",
     "InternalName": "SuitKing",
-    "AssemblyVersion": "0.1.0.8",
-    "Description": "打开投影台后汇总全部物品栏与兵装库中的套装幻影化装备，按部位分组显示装备图标、名称、部位、所属套装与状态，默认打开可补齐分类；原生装备选择列表中可补齐名称标红。可通过 /suitking 或 /sking 打开。",
+    "AssemblyVersion": "0.1.0.9",
+    "Description": "使用游戏原生 UI 汇总物品栏与兵装库中的套装幻影化装备，采用紧凑行距、左侧装备套装过滤和单击分类；默认打开可补齐，原生装备选择列表中可补齐名称标红。可通过 /suitking 或 /sking 打开。",
     "ApplicableVersion": "any",
     "RepoUrl": "https://github.com/Momikk/SuitKing",
     "Tags": [
@@ -15,17 +15,17 @@
     "DalamudApiLevel": 15,
     "LoadRequiredState": 0,
     "LoadSync": false,
-    "CanUnloadAsync": false,
+    "CanUnloadAsync": true,
     "LoadPriority": 0,
     "IconUrl": "https://raw.githubusercontent.com/Momikk/SuitKing/main/images/icon.png",
     "Punchline": "汇总物品栏和兵装库中支持套装幻影化的装备。",
     "AcceptsFeedback": true,
     "DownloadCount": 0,
-    "LastUpdate": 1791965224,
+    "LastUpdate": 1791970976,
     "IsTestingExclusive": false,
-    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.8.zip",
-    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.8.zip",
+    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.9.zip",
+    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.9.zip",
     "IsHide": false,
-    "Changelog": "版本 0.1.0.8\n分类改为标签，默认打开可补齐。\n装备列表显示图标，并按部位分组排序。\n原生装备选择列表的可补齐名称标红。\n移除说明、搜索和手动刷新按钮。"
+    "Changelog": "版本 0.1.0.9\n主窗口改用游戏原生 UI。\n紧凑行距，隐藏套装开关移至左侧。\n默认可补齐，保留分组与名称标红。\n原生显示及关闭卸载待实机确认。\nEnglish\nNative UI with compact rows and a left-side filter.\nCompletable opens by default; grouping and highlighting retained.\nNative rendering and unload await in-game validation."
   }
 ]
