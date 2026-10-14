@@ -75,3 +75,7 @@ Release 构建 0 警告、0 错误。32 项纯逻辑检查及 5 项国服数据�
 从本机国服 sqpack 提取 Addon 15663 的实际合并提示，确定正常文本与既有中文一致。旧逻辑使用原始 Utf8String.ToString 与专用 ConfirmationAddonId/ContextAddonId，失败路径合并，现有截图不能区分哪一项不匹配；日志中也没有该失败的诊断值。改用 SeString.Parse(...).TextValue，按实际游戏数据比较文本；SelectYesno 用 RaptureAtkModule.AddonCallbackMapping 的 EventInterface 核对归属，只接受当前套装转换或投影台 Agent。源物品、角色和可补齐条件仍实时检查。检查失败分别记录 Owned/TextMatches、回调指针、Agent 指针、窗口 ID 及实际/期望提示，确保下次可定位，不再据截图猜测。
 
 国服 API 15 构建零警告零错误，52 项检查通过（46 项离线策略、6 项国服数据）。通用确认窗在实际游戏中的回调映射和点击效果未实机验收；不能将离线检查当作自动补齐成功。
+
+## 0.1.0.14 — 2026-10-14
+
+截图显示合并确认与主幻影化已执行，出现 MiragePrismPrismSetConvertC 最终收纳确认，套装幻影化未勾选、是按钮不可用。新增 FinalConfirm 阶段，读取 StoreAsOutfitGlamourCheckBox，设置勾选并发送其原生事件；等待后一轮检查 IsChecked 和 YesButton.IsEnabled，再进入 Result 后点击一次是。核对回调/确认 ID、来源、套装索引及批次；不把最终收纳确认放在初始合并阶段处理。新增四项最终确认策略检查，合计 56 项检查通过，构建零警告零错误。第四步实际勾选、最终收纳与连续处理待游戏验证。

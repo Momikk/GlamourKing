@@ -11,6 +11,9 @@ internal static class OutfitCompletionPolicy
             && normalized == string.Concat(expected.Where(c => !char.IsWhiteSpace(c)));
     }
 
+    internal static bool CanConfirmFinalStorage(bool owned, bool validatedSubmission, bool outfitChecked)
+        => owned && validatedSubmission && outfitChecked;
+
     // Validate every filled native hand-in slot, including any automatically selected by the game.
     internal static string? ValidateHandIns(IReadOnlySet<CompletionItemKey> allowed,
         IReadOnlyList<CompletionItemKey> submitted, CompletionItemKey source, uint prismsHeld)

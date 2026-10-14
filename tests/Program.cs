@@ -105,6 +105,10 @@ Check(OutfitCompletionPolicy.ValidateHandIns(batch, [sourceKey, otherKey with { 
 Check(!OutfitCompletionPolicy.IsMergePrompt("", ""), "Missing native prompt data cannot authorize confirmation");
 Check(!OutfitCompletionPolicy.IsMergePrompt("要删除此装备吗？", "发现了缺少此装备的现有套装，要将此装备并入其中吗？"),
     "Live prompt comparison still rejects a foreign confirmation");
+Check(!OutfitCompletionPolicy.CanConfirmFinalStorage(true, true, false), "Final Yes cannot be clicked before outfit-glamour checkbox is checked");
+Check(!OutfitCompletionPolicy.CanConfirmFinalStorage(false, true, true), "Checked foreign final dialog is never accepted");
+Check(!OutfitCompletionPolicy.CanConfirmFinalStorage(true, false, true), "Final dialog needs a validated hand-in batch");
+Check(OutfitCompletionPolicy.CanConfirmFinalStorage(true, true, true), "Owned validated checked outfit can reach final Yes");
 if (args.Length == 0) return;
 using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
 var nativePrompts = game.Excel.GetSheet<Addon>(Lumina.Data.Language.ChineseSimplified)

@@ -3,7 +3,7 @@
     "Author": "Momikk",
     "Name": "套装之王 SuitKing",
     "InternalName": "SuitKing",
-    "AssemblyVersion": "0.1.0.13",
+    "AssemblyVersion": "0.1.0.14",
     "Description": "使用游戏原生 UI 汇总物品栏与兵装库中的套装幻影化装备，采用紧凑行距、左侧装备套装过滤和单击分类；默认打开可补齐，支持按钮批量补入已有套装，原生装备选择列表中可补齐名称标红。可通过 /suitking 或 /sking 打开。",
     "ApplicableVersion": "any",
     "RepoUrl": "https://github.com/Momikk/SuitKing",
@@ -21,11 +21,11 @@
     "Punchline": "汇总物品栏和兵装库中支持套装幻影化的装备。",
     "AcceptsFeedback": true,
     "DownloadCount": 0,
-    "LastUpdate": 1791987606,
+    "LastUpdate": 1791988613,
     "IsTestingExclusive": false,
-    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.13.zip",
-    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.13.zip",
+    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.14.zip",
+    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.14.zip",
     "IsHide": false,
-    "Changelog": "版本 0.1.0.13\n· 修正确认窗归属识别，核对原生回调处理者。\n· 解码提示富文本，匹配国服实际合并文字。\n· 区分文字、归属和点击失败，补充日志诊断。\n· 保留装备与批次保护，实际点击待游戏验证。\nEnglish\n· Check native callback ownership for merge confirmations.\n· Decode rich text and match the actual CN merge prompt.\n· Separate text, ownership and click failures in diagnostics.\n· Keep item/batch safeguards; native clicks await validation."
+    "Changelog": "版本 0.1.0.14\n· 补上最终确认：勾选套装幻影化后点击是。\n· 等待勾选生效，防止重复确认或提交。\n· 最终确认前重新核对装备、套装与批次。\n· 保存完成后再处理下一件；第四步待实机验收。\nEnglish\n· Check Store as Outfit Glamour, then click final Yes.\n· Wait for checkbox processing and prevent duplicate confirmation.\n· Revalidate items, outfit and batch before final confirmation.\n· Continue after storage completes; step four awaits validation."
   }
 ]

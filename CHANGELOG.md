@@ -1,5 +1,24 @@
 # 更新记录
 
+## 0.1.0.14 — 2026-10-14
+
+· 补上自动补齐的第四步：最终确认窗中先勾选“套装幻影化”，再点击“是”。<br>
+· 勾选后等待游戏处理，再进行最终确认；不重复点击“幻影化”或最终“是”。<br>
+· 最终确认前再次核对来源装备、已有套装、缺少部位和提交批次；不匹配时停止。<br>
+· 提交后继续等待套装保存与来源装备移出，完成后才处理下一件。
+
+用户截图确认 0.1.0.13 已完成前面的合并确认及幻影化步骤，停在最终确认窗。国服 API 15 编译与 56 项回归/国服数据检查通过；新增勾选与最终确认仍待实机验收。
+
+### English
+
+· Add the fourth step: check Store as Outfit Glamour in the final dialog, then click Yes.<br>
+· Wait for checkbox processing before final confirmation; never repeat Store as Glamour or the final Yes.<br>
+· Revalidate the source items, existing outfit, missing parts and hand-in batch before confirming; stop on mismatch.<br>
+· Wait for stored outfit parts and source-item removal before processing the next item.
+
+The user's screenshot confirms that 0.1.0.13 reached the final confirmation after the earlier steps. CN API 15 compilation and 56 regression/CN-data checks pass; the new checkbox and final Yes still require in-game validation.
+
+
 ## 0.1.0.13 — 2026-10-14
 
 · 修复通用“是/否”合并确认窗依赖专用窗口编号的归属判断，改为核对游戏实际注册的回调处理者。<br>

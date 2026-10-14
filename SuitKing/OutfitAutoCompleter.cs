@@ -13,7 +13,7 @@ internal sealed unsafe class OutfitAutoCompleter(Plugin plugin)
     private const string ConvertName = "MiragePrismPrismSetConvert";
     private const string ConfirmName = "MiragePrismPrismSetConvertC";
     private const string SelectorName = "MiragePrismPrismBoxCrystallize";
-    private enum Phase { Idle, Next, Confirm, Convert, Result }
+    private enum Phase { Idle, Next, Confirm, Convert, FinalConfirm, Result }
     private Phase phase;
     private readonly Queue<(CompletionItemKey Key, string Name)> pending = new();
     private readonly HashSet<CompletionItemKey> allowed = [];
@@ -103,6 +103,7 @@ internal sealed unsafe class OutfitAutoCompleter(Plugin plugin)
                 case Phase.Next: OpenNext(); break;
                 case Phase.Confirm: ConfirmMerge(); break;
                 case Phase.Convert: SubmitConversion(); break;
+                case Phase.FinalConfirm: ConfirmFinalStorage(manager); break;
                 case Phase.Result: WaitForResult(manager); break;
             }
         }
@@ -162,10 +163,7 @@ internal sealed unsafe class OutfitAutoCompleter(Plugin plugin)
         var yesno = (AddonSelectYesno*)GetAddon("SelectYesno");
         if (confirm != null)
         {
-            if (data->ConfirmationAddonId != confirm->Id)
-            { Stop("套装确认窗口不属于本次操作。"); return; }
-            if (!ClickButton(confirm, ((AddonMiragePrismPrismSetConvertC*)confirm)->YesButton)) return;
-            SetPhase(Phase.Convert);
+            Stop("最终收纳确认出现在错误阶段，未自动确认。");
             return;
         }
         if (yesno != null)
@@ -254,10 +252,57 @@ internal sealed unsafe class OutfitAutoCompleter(Plugin plugin)
         var button = addon->StoreAsGlamourButton;
         if (button == null || !button->IsEnabled) { Stop("幻影化按钮不可用，请检查品质、耐久或材料。"); return; }
         // Move out of Submit BEFORE sending the click: no frame can submit a second time.
-        SetPhase(Phase.Result);
+        SetPhase(Phase.FinalConfirm);
         if (!ClickButton((AtkUnitBase*)addon, button)) Stop("无法识别幻影化按钮事件，未提交。");
     }
 
+    private void ConfirmFinalStorage(MirageManager* manager)
+    {
+        var confirm = (AddonMiragePrismPrismSetConvertC*)GetAddon(ConfirmName);
+        if (confirm == null)
+        {
+            // An external confirmer may have completed the owned operation. Verify the result,
+            // rather than repeating Store as Glamour or confirming some other dialog.
+            if (submitted.Count > 0 && submitted.All(item => manager->IsSetSlotUnlocked(prismBoxIndex, item.OutfitSlot)
+                && ReadKey((InventoryType)item.Key.Container, item.Key.Slot) != item.Key))
+                SetPhase(Phase.Result);
+            return;
+        }
+        var data = OwnedData();
+        if (data == null) return;
+        var agent = AgentMiragePrismPrismSetConvert.Instance();
+        var module = RaptureAtkModule.Instance();
+        var callbackOwned = module != null && module->AddonCallbackMapping.TryGetValue(confirm->Id, out var callback, false)
+            && (nint)callback.EventInterface == (nint)agent;
+        if ((!callbackOwned && data->ConfirmationAddonId != confirm->Id)
+            || !data->StoreInExistingOutfit || data->PrismBoxIndex != prismBoxIndex
+            || manager->PrismBoxItemIds[(int)prismBoxIndex] % 1_000_000 != outfitId
+            || submitted.Count == 0 || submitted.Any(item => !IsCurrentEligible(item.Key)
+                || manager->IsSetSlotUnlocked(prismBoxIndex, item.OutfitSlot)))
+        { Stop("最终收纳确认不属于当前补齐装备或套装，未确认。"); return; }
+        var checkbox = confirm->StoreAsOutfitGlamourCheckBox;
+        if (checkbox == null || !checkbox->IsEnabled)
+        { Stop("套装幻影化勾选框不可用，未确认。"); return; }
+        if (!checkbox->IsChecked)
+        {
+            // Set the component state first, then notify its registered addon event so the
+            // final confirmation button and native storing mode see the checked state.
+            checkbox->SetChecked(true);
+            if (!ClickButton((AtkUnitBase*)confirm, (AtkComponentButton*)checkbox))
+            {
+                checkbox->SetChecked(false);
+                Stop("未找到套装幻影化勾选事件，未确认。");
+            }
+            return; // Let the game process the checkbox before clicking Yes on a later tick.
+        }
+        if (confirm->YesButton == null || !confirm->YesButton->IsEnabled) return;
+        if (!OutfitCompletionPolicy.CanConfirmFinalStorage(true, submitted.Count > 0, checkbox->IsChecked)) return;
+        SetPhase(Phase.Result); // This final Yes is irreversible; never issue it twice.
+        if (!ClickButton((AtkUnitBase*)confirm, confirm->YesButton))
+        { Stop("未找到最终确认按钮事件，未确认。"); return; }
+        Status = $"已确认套装收纳，等待结果：{targetName}";
+        Plugin.Log.Information("Confirmed checked outfit storage for {OutfitId}, {Count} pieces.", outfitId, submitted.Count);
+    }
     private void WaitForResult(MirageManager* manager)
     {
         if (manager->PrismBoxItemIds[(int)prismBoxIndex] % 1_000_000 != outfitId)
