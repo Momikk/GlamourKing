@@ -1,8 +1,8 @@
 namespace SuitKing;
 
-internal sealed record InventoryEntry(uint ItemId, bool HighQuality, string Location, int Slot, ushort Condition);
+internal sealed record InventoryEntry(uint ItemId, bool HighQuality, string Location, int Slot, ushort Condition, bool? RegisteredToGearset = null);
 internal sealed record OutfitInfo(string ItemName, string SetNames);
-internal sealed record OutfitEquipment(uint ItemId, string Name, bool HighQuality, string Location, int Slot, ushort Condition, string SetNames);
+internal sealed record OutfitEquipment(uint ItemId, string Name, bool HighQuality, string Location, int Slot, ushort Condition, string SetNames, bool? RegisteredToGearset = null);
 
 internal static class OutfitListBuilder
 {
@@ -19,9 +19,19 @@ internal static class OutfitListBuilder
             if (info is null)
                 continue;
             result.Add(new(entry.ItemId, info.ItemName, entry.HighQuality, entry.Location,
-                entry.Slot, entry.Condition, info.SetNames));
+                entry.Slot, entry.Condition, info.SetNames, entry.RegisteredToGearset));
         }
         return result.OrderBy(item => item.Name, StringComparer.Ordinal)
             .ThenBy(item => item.Location, StringComparer.Ordinal).ThenBy(item => item.Slot).ToArray();
     }
+}
+
+internal static class OutfitDisplayFilter
+{
+    public static IReadOnlyList<OutfitEquipment> Apply(IEnumerable<OutfitEquipment> equipment,
+        bool hideGearsetItems, string search)
+        => equipment.Where(item => (!hideGearsetItems || item.RegisteredToGearset != true)
+            && (string.IsNullOrWhiteSpace(search)
+                || item.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
+                || item.SetNames.Contains(search, StringComparison.OrdinalIgnoreCase))).ToArray();
 }

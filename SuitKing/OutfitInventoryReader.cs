@@ -1,4 +1,5 @@
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using Lumina.Excel.Sheets;
 
 namespace SuitKing;
@@ -45,6 +46,8 @@ internal sealed class OutfitInventoryReader
             Fail("物品数据尚未就绪，等待加载。" );
             return;
         }
+        catalog ??= new(Plugin.Data.GetExcelSheet<MirageStoreSetItemLookup>(), Plugin.Data.GetExcelSheet<Item>());
+        var gearsets = RaptureGearsetModule.Instance();
         var entries = new List<InventoryEntry>();
         var missing = new List<string>();
         foreach (var (type, name) in Containers)
@@ -64,10 +67,11 @@ internal sealed class OutfitInventoryReader
                 // These real inventory containers should never contain symbolic proxy items.
                 if (item->IsSymbolic)
                     throw new InvalidOperationException($"{name}存在未预期的代理物品，已停止读取。");
-                if (item->ItemId == 0 || item->Quantity <= 0)
+                if (item->ItemId == 0 || item->Quantity <= 0 || catalog.Get(item->ItemId) is null)
                     continue;
                 entries.Add(new(item->ItemId,
-                    (item->Flags & InventoryItem.ItemFlags.HighQuality) != 0, name, slot + 1, item->Condition));
+                    (item->Flags & InventoryItem.ItemFlags.HighQuality) != 0, name, slot + 1, item->Condition,
+                    gearsets == null ? null : gearsets->IsItemRegisteredToGearset(item)));
             }
         }
         catalog ??= new(Plugin.Data.GetExcelSheet<MirageStoreSetItemLookup>(), Plugin.Data.GetExcelSheet<Item>());

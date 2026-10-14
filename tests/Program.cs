@@ -32,6 +32,18 @@ Check(result.Single(x => x.ItemId == 20).Condition == 10000, "Damaged gear remai
 Check(OutfitListBuilder.Build([], Find).Count == 0, "Empty inventory handled");
 Check(OutfitListBuilder.Build(fixture.Where(x => x.ItemId != 10), Find).Count == 1, "Removed items disappear on refreshed snapshot");
 
+var thirtySix = Enumerable.Range(1, 36).Select(i => new OutfitEquipment((uint)i, $"装备{i}",
+    i % 2 == 0, "兵装库·身体", i, 30000, "测试套装", i <= 6)).ToArray();
+Check(OutfitDisplayFilter.Apply(thirtySix, false, "").Count == 36, "Gearset filter off retains all 36 entries");
+Check(OutfitDisplayFilter.Apply(thirtySix, true, "").Count == 30, "Gearset filter on hides exactly six registered entries");
+Check(OutfitDisplayFilter.Apply(thirtySix, true, "装备1").All(item => item.RegisteredToGearset != true
+    && item.Name.Contains("装备1")), "Search and gearset filter apply together");
+var copies = new[] { new OutfitEquipment(10, "重复副本", false, "物品栏 1", 1, 30000, "测试套装", true),
+    new OutfitEquipment(10, "重复副本", true, "物品栏 2", 1, 30000, "测试套装", false) };
+Check(OutfitDisplayFilter.Apply(copies, true, "").Single().HighQuality, "Filter uses per-copy registration instead of item-id membership");
+Check(OutfitDisplayFilter.Apply([copies[0]], true, "").Count == 0, "Fully filtered inventory is empty");
+Check(OutfitDisplayFilter.Apply([copies[1] with { RegisteredToGearset = null }], true, "").Count == 1,
+    "Unknown registration is not silently discarded");
 if (args.Length == 0) return;
 using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
 var items = game.Excel.GetSheet<Item>(Lumina.Data.Language.ChineseSimplified);

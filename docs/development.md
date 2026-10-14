@@ -41,3 +41,5 @@ dotnet run --project tests/SuitKing.Tests.csproj -c Release -- '你的国服目�
 ## 发布更新记录
 
 每次发版同步维护 CHANGELOG.md、README 中的版本，以及专用 repo.json 和统一 pluginmaster.json 中的 Changelog 字段。更新记录面向使用者，说明新增、修复、使用变化和已知限制，区分离线验证与实机验收。
+
+装备套装过滤使用游戏原生 IsItemRegisteredToGearset，按具体 InventoryItem 判断而非只比对物品 ID。勾选框只影响显示，原始快照保留所有候选装备；配置通过 Dalamud 保存。验收时以用户当前 36 件候选、过滤后 30 件为对照，并确认切换、搜索、重载及角色切换。

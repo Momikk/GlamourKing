@@ -40,14 +40,23 @@ internal sealed class MainWindow : Window
         ImGui.SameLine();
         ImGui.SetNextItemWidth(300);
         ImGui.InputTextWithHint("##Search", "搜索装备或套装名称", ref search, 128);
-        var matches = inventory.Equipment.Where(item => string.IsNullOrWhiteSpace(search)
-            || item.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
-            || item.SetNames.Contains(search, StringComparison.OrdinalIgnoreCase)).ToArray();
-        ImGui.TextUnformatted($"显示 {matches.Length} / {inventory.Equipment.Count} 件");
-        if (matches.Length == 0)
+        var hideGearsets = plugin.Config.HideGearsetItems;
+        if (ImGui.Checkbox("隐藏套装中的物品", ref hideGearsets))
+        {
+            plugin.Config.HideGearsetItems = hideGearsets;
+            plugin.SaveConfiguration();
+        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("隐藏已登记到装备套装（职业配装）中的物品，与游戏的同名过滤作用相同。\n该选项独立保存，不改变游戏窗口的勾选状态。");
+        var matches = OutfitDisplayFilter.Apply(inventory.Equipment, hideGearsets, search);
+        var registered = inventory.Equipment.Count(item => item.RegisteredToGearset == true);
+        ImGui.TextUnformatted($"显示 {matches.Count} / {inventory.Equipment.Count} 件 · 套装过滤隐藏 {(hideGearsets ? registered : 0)} 件");
+        if (hideGearsets && inventory.Equipment.Any(item => item.RegisteredToGearset is null))
+            ImGui.TextWrapped("装备套装数据尚未就绪，未确认的物品暂时保留显示。");
+        if (matches.Count == 0)
         {
             ImGui.TextWrapped(inventory.IsComplete
-                ? (search.Length == 0 ? "当前物品栏与兵装库没有支持套装幻影化的装备。" : "没有匹配搜索条件的装备。")
+                ? (inventory.Equipment.Count == 0 ? "当前物品栏与兵装库没有支持套装幻影化的装备。" : "没有符合当前过滤条件的装备。")
                 : "数据尚未完整加载，请稍候。");
             return;
         }

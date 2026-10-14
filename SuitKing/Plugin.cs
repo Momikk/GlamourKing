@@ -29,10 +29,12 @@ public sealed class Plugin : IDalamudPlugin
     private string? lastError;
 
     internal OutfitInventoryReader Inventory { get; } = new();
+    internal Configuration Config { get; }
     public bool IsDresserOpen { get; private set; }
 
     public Plugin()
     {
+        Config = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         mainWindow = new MainWindow(this);
         windowSystem.AddWindow(mainWindow);
         CommandsAdd(CommandName);
@@ -109,6 +111,7 @@ public sealed class Plugin : IDalamudPlugin
     }
 
     internal void RequestRefresh() => nextScan = 0;
+    internal void SaveConfiguration() => PluginInterface.SavePluginConfig(Config);
     private void OnCommand(string command, string args) => mainWindow.Toggle();
     private void OpenMainUi() => mainWindow.IsOpen = true;
 }
