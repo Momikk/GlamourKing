@@ -44,6 +44,31 @@ Check(OutfitDisplayFilter.Apply(copies, true, "").Single().HighQuality, "Filter 
 Check(OutfitDisplayFilter.Apply([copies[0]], true, "").Count == 0, "Fully filtered inventory is empty");
 Check(OutfitDisplayFilter.Apply([copies[1] with { RegisteredToGearset = null }], true, "").Count == 1,
     "Unknown registration is not silently discarded");
+var setA = new OutfitDefinition(100, "套装甲", new uint[] { 10, 20 });
+var setB = new OutfitDefinition(200, "套装乙", new uint[] { 10, 30 });
+var partial = new StoredOutfit(100, new HashSet<uint> { 10 });
+Check(OutfitStateEvaluator.Evaluate(10, [setA], [partial]).State == OutfitStorageState.Saved,
+    "Saved piece stays saved even when other pieces in that outfit are missing");
+Check(OutfitStateEvaluator.Evaluate(20, [setA], [partial]).State == OutfitStorageState.CanComplete,
+    "Missing piece in existing outfit is completable");
+Check(OutfitStateEvaluator.Evaluate(10, [setA], []).State == OutfitStorageState.NotCreated,
+    "Loaded empty outfit collection means outfit not created");
+Check(OutfitStateEvaluator.Evaluate(10, [setA], null).State == OutfitStorageState.Unknown,
+    "Unloaded collection must never be treated as not created");
+Check(OutfitStateEvaluator.Evaluate(10, null, []).State == OutfitStorageState.Unknown,
+    "Missing set definitions stay unknown");
+Check(OutfitStateEvaluator.Evaluate(10, [setB], [partial]).State == OutfitStorageState.NotCreated,
+    "An unrelated existing outfit does not mark this outfit as created");
+var mixed = OutfitStateEvaluator.Evaluate(10, [setA, setB], [partial, new(200, new HashSet<uint> { 30 })]);
+Check(mixed.State == OutfitStorageState.CanComplete && mixed.Details.Contains("套装甲：已保存")
+    && mixed.Details.Contains("套装乙：可补齐"), "Multiple memberships retain per-outfit states and prioritize completable");
+Check(OutfitStateEvaluator.Evaluate(10, [setA], [partial, new(100, new HashSet<uint> { 20 })]).State
+    == OutfitStorageState.CanComplete, "Duplicate outfits preserve missing-slot opportunity");
+Check(OutfitStateEvaluator.Evaluate(10, [setA], [new(100, new HashSet<uint> { 10, 20 })]).State
+    == OutfitStorageState.Saved, "Fully stored outfit reports saved");
+Check(OutfitStateEvaluator.Evaluate(10, [setA], [partial]).State == OutfitStorageState.Saved
+    && OutfitStateEvaluator.Evaluate(10, [setA], []).State == OutfitStorageState.NotCreated,
+    "Refresh after restoring outfit removes old saved state");
 if (args.Length == 0) return;
 using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
 var items = game.Excel.GetSheet<Item>(Lumina.Data.Language.ChineseSimplified);

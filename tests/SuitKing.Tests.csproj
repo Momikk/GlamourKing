@@ -7,6 +7,7 @@
     <DalamudHome Condition="'$(DalamudHome)' == ''">$(APPDATA)/XIVLauncherCN/addon/Hooks/dev</DalamudHome>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../SuitKing/OutfitStorageState.cs" Link="OutfitStorageState.cs" />
     <Compile Include="../SuitKing/OutfitEquipment.cs" Link="OutfitEquipment.cs" />
     <Compile Include="../SuitKing/OutfitCatalog.cs" Link="OutfitCatalog.cs" />
     <Reference Include="Lumina"><HintPath>$(DalamudHome)/Lumina.dll</HintPath></Reference>

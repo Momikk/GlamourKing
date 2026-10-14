@@ -3,8 +3,8 @@
     "Author": "Momikk",
     "Name": "套装之王 SuitKing",
     "InternalName": "SuitKing",
-    "AssemblyVersion": "0.1.0.6",
-    "Description": "打开投影台后汇总全部物品栏与兵装库中的套装幻影化装备，显示品质、位置与所属套装。可通过 /suitking 或 /sking 打开。",
+    "AssemblyVersion": "0.1.0.7",
+    "Description": "打开投影台后汇总全部物品栏与兵装库中的套装幻影化装备，显示品质、位置与所属套装，区分已保存、可补齐和未建立套装。可通过 /suitking 或 /sking 打开。",
     "ApplicableVersion": "any",
     "RepoUrl": "https://github.com/Momikk/SuitKing",
     "Tags": [
@@ -20,12 +20,12 @@
     "IconUrl": "https://raw.githubusercontent.com/Momikk/SuitKing/main/images/icon.png",
     "Punchline": "汇总物品栏和兵装库中支持套装幻影化的装备。",
     "AcceptsFeedback": true,
-    "IsTestingExclusive": false,
-    "DownloadCount": 0,
-    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.6.zip",
-    "LastUpdate": 1791945018,
-    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.6.zip",
+    "Changelog": "版本 0.1.0.7\n新增已保存、可补齐、未建立三类套装状态。\n新增状态筛选、颜色提示和套装详情。\n套装数据未就绪时显示待确认，避免误判。\n不自动收纳，品质与提交条件以游戏为准。",
+    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.7.zip",
     "IsHide": false,
-    "Changelog": "版本 0.1.0.6\n新增“隐藏套装中的物品”过滤。\n隐藏已登记到装备套装的装备，并保存选择。\n显示过滤后与隐藏数量，可与搜索同时使用。\n默认关闭，不改变游戏窗口的过滤状态。"
+    "IsTestingExclusive": false,
+    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.7.zip",
+    "DownloadCount": 0,
+    "LastUpdate": 1791962229
   }
 ]

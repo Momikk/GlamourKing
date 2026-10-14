@@ -43,3 +43,5 @@ dotnet run --project tests/SuitKing.Tests.csproj -c Release -- '你的国服目�
 每次发版同步维护 CHANGELOG.md、README 中的版本，以及专用 repo.json 和统一 pluginmaster.json 中的 Changelog 字段。更新记录面向使用者，说明新增、修复、使用变化和已知限制，区分离线验证与实机验收。
 
 装备套装过滤使用游戏原生 IsItemRegisteredToGearset，按具体 InventoryItem 判断而非只比对物品 ID。勾选框只影响显示，原始快照保留所有候选装备；配置通过 Dalamud 保存。验收时以用户当前 36 件候选、过滤后 30 件为对照，并确认切换、搜索、重载及角色切换。
+
+套装保存状态只在 MirageManager.PrismBoxLoaded 为真时读取。PrismBoxItemIds 中映射到 MirageStoreSetItem 的条目才作为套装，保留列顺序的 11 个部位用 IsSetSlotUnlocked 判断是否已保存，不把单独存放的散件算作套装。状态分类是对存储记录的结构判断，不保证物品当前满足品质、耐久或其他提交条件。游戏内验收以用户提供的“已保存相同套装”和“发现了缺少此装备的现有套装”示例为对照，并补充未建立的实际样例。

@@ -21,12 +21,14 @@ internal sealed class OutfitInventoryReader
     public IReadOnlyList<OutfitEquipment> Equipment { get; private set; } = [];
     public string Status { get; private set; } = "打开投影台后读取物品栏和兵装库。";
     public bool IsComplete { get; private set; }
+    public bool AreOutfitsLoaded { get; private set; }
     public DateTimeOffset? UpdatedAt { get; private set; }
 
     public void Clear()
     {
         Equipment = [];
         IsComplete = false;
+        AreOutfitsLoaded = false;
         UpdatedAt = null;
         Status = "打开投影台后读取物品栏和兵装库。";
     }
@@ -75,7 +77,12 @@ internal sealed class OutfitInventoryReader
             }
         }
         catalog ??= new(Plugin.Data.GetExcelSheet<MirageStoreSetItemLookup>(), Plugin.Data.GetExcelSheet<Item>());
-        Equipment = OutfitListBuilder.Build(entries, catalog.Get);
+        var stored = DresserOutfitReader.Read();
+        AreOutfitsLoaded = stored is not null;
+        Equipment = OutfitListBuilder.Build(entries, catalog.Get).Select(item => item with
+        {
+            Assessment = OutfitStateEvaluator.Evaluate(item.ItemId, catalog.Get(item.ItemId)?.Sets, stored),
+        }).ToArray();
         IsComplete = missing.Count == 0;
         UpdatedAt = DateTimeOffset.Now;
         Status = IsComplete
