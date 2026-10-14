@@ -1,3 +1,4 @@
+using Dalamud.Game.Text.SeStringHandling;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
@@ -170,12 +171,33 @@ internal sealed unsafe class OutfitAutoCompleter(Plugin plugin)
         if (yesno != null)
         {
             var box = AgentMiragePrismPrismBox.Instance();
-            var ownedId = data->ConfirmationAddonId == yesno->Id
-                || (box != null && box->ContextAddonId == yesno->Id);
-            var prompt = yesno->PromptText == null ? "" : yesno->PromptText->NodeText.ToString();
-            if (!ownedId || !OutfitCompletionPolicy.IsMergePrompt(prompt))
-            { Stop("出现了不匹配的确认提示，未自动确认。"); return; }
-            if (!ClickButton((AtkUnitBase*)yesno, yesno->YesButton)) return;
+            var agent = AgentMiragePrismPrismSetConvert.Instance();
+            var module = RaptureAtkModule.Instance();
+            nint handler = 0;
+            if (module != null && module->AddonCallbackMapping.TryGetValue(yesno->Id, out var callback, false))
+                handler = (nint)callback.EventInterface;
+            // Generic SelectYesno may not populate the specialized confirmation/context IDs.
+            // Its registered callback handler is the real owner; source identity is checked above.
+            var owned = handler != 0 && (handler == (nint)agent || handler == (nint)box);
+            var prompt = yesno->PromptText == null ? ""
+                : SeString.Parse(yesno->PromptText->NodeText.AsSpan()).TextValue;
+            var expected = Plugin.Data.GetExcelSheet<Addon>().TryGetRow(15663, out var row)
+                ? row.Text.ExtractText() : "";
+            var textMatches = OutfitCompletionPolicy.IsMergePrompt(prompt, expected);
+            if (!owned || !textMatches)
+            {
+                Plugin.Log.Warning("Merge confirmation rejected: Owned={Owned}, TextMatches={TextMatches}, "
+                    + "Addon={Addon}, Handler={Handler:X}, Agent={Agent:X}, Box={Box:X}, "
+                    + "ConfirmId={ConfirmId}, ContextId={ContextId}, Prompt={Prompt}, Expected={Expected}",
+                    owned, textMatches, yesno->Id, handler, (nint)agent, (nint)box,
+                    data->ConfirmationAddonId, box == null ? 0 : box->ContextAddonId, prompt, expected);
+                Stop(!textMatches ? "确认提示文字不匹配，请查看 /xllog。" : "确认窗口回调不属于本次套装操作，请查看 /xllog。");
+                return;
+            }
+            if (yesno->YesButton == null || !yesno->YesButton->IsEnabled) return;
+            if (!ClickButton((AtkUnitBase*)yesno, yesno->YesButton))
+            { Stop("未找到确认按钮的原生点击事件，请查看 /xllog。"); return; }
+            Plugin.Log.Information("Accepted owned outfit merge prompt for item {ItemId}, addon {AddonId}.", source.ItemId, yesno->Id);
             SetPhase(Phase.Convert);
             return;
         }

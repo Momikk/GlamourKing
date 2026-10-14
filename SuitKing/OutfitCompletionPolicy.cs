@@ -4,10 +4,11 @@ internal readonly record struct CompletionItemKey(uint ItemId, uint Container, u
 
 internal static class OutfitCompletionPolicy
 {
-    internal static bool IsMergePrompt(string text)
+    internal static bool IsMergePrompt(string text, string expected = "发现了缺少此装备的现有套装，要将此装备并入其中吗？")
     {
         var normalized = string.Concat(text.Where(c => !char.IsWhiteSpace(c)));
-        return normalized == "发现了缺少此装备的现有套装，要将此装备并入其中吗？";
+        return !string.IsNullOrWhiteSpace(expected)
+            && normalized == string.Concat(expected.Where(c => !char.IsWhiteSpace(c)));
     }
 
     // Validate every filled native hand-in slot, including any automatically selected by the game.

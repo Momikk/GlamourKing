@@ -102,8 +102,18 @@ Check(OutfitCompletionPolicy.ValidateHandIns(batch, [sourceKey, new(30, 0, 9, fa
 Check(OutfitCompletionPolicy.ValidateHandIns(batch, [sourceKey with { HighQuality = true }], sourceKey, 2) is not null, "Replacing an NQ copy with HQ invalidates the source identity");
 Check(OutfitCompletionPolicy.ValidateHandIns(batch, [sourceKey, otherKey], sourceKey, 1) is not null, "Insufficient prisms block the whole native hand-in");
 Check(OutfitCompletionPolicy.ValidateHandIns(batch, [sourceKey, otherKey with { Slot = 6 }], sourceKey, 2) is not null, "Moving a piece to a different slot invalidates batch authorization");
+Check(!OutfitCompletionPolicy.IsMergePrompt("", ""), "Missing native prompt data cannot authorize confirmation");
+Check(!OutfitCompletionPolicy.IsMergePrompt("要删除此装备吗？", "发现了缺少此装备的现有套装，要将此装备并入其中吗？"),
+    "Live prompt comparison still rejects a foreign confirmation");
 if (args.Length == 0) return;
 using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
+var nativePrompts = game.Excel.GetSheet<Addon>(Lumina.Data.Language.ChineseSimplified)
+    .Select(row => (row.RowId, Text: row.Text.ExtractText()))
+    .Where(row => row.Text.Contains("缺少此装备的现有套装")).ToArray();
+foreach (var prompt in nativePrompts)
+    Console.WriteLine($"CN MERGE PROMPT: {prompt.RowId} => {prompt.Text.Replace("\n", "[newline]")}");
+Check(nativePrompts.Any(row => row.RowId == 15663 && OutfitCompletionPolicy.IsMergePrompt(row.Text)),
+    "Live CN Addon row 15663 matches the existing-outfit merge prompt");
 var items = game.Excel.GetSheet<Item>(Lumina.Data.Language.ChineseSimplified);
 var lookup = game.Excel.GetSheet<MirageStoreSetItemLookup>(Lumina.Data.Language.ChineseSimplified);
 var names = new[] { "帕戈尔赞治愈胸衣", "战女神审言胸甲", "改良型斯卡艾瓦咏咒长衣" };

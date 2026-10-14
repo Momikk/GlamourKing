@@ -69,3 +69,9 @@ Release 构建 0 警告、0 错误。32 项纯逻辑检查及 5 项国服数据�
 ## 0.1.0.12 — 2026-10-14
 
 用户实机截图显示已有套装合并提示，同时插件因 StoreInExistingOutfit 尚为 false 提前停止。该模式检查从 OwnedData 移到 SubmitConversion 的 Ready 阶段；确认阶段继续检查来源、确认窗口 ID 以及国服提示。确认后的弹窗关闭动画改为等待，阶段超时仍有效，既有提交与结果检查保留。编译零警告、零错误，49 项回归/国服数据检查通过。尚未在游戏中确认新流程实际点击“是”和最终收纳，不据此宣称实机通过。
+
+## 0.1.0.13 — 2026-10-14
+
+从本机国服 sqpack 提取 Addon 15663 的实际合并提示，确定正常文本与既有中文一致。旧逻辑使用原始 Utf8String.ToString 与专用 ConfirmationAddonId/ContextAddonId，失败路径合并，现有截图不能区分哪一项不匹配；日志中也没有该失败的诊断值。改用 SeString.Parse(...).TextValue，按实际游戏数据比较文本；SelectYesno 用 RaptureAtkModule.AddonCallbackMapping 的 EventInterface 核对归属，只接受当前套装转换或投影台 Agent。源物品、角色和可补齐条件仍实时检查。检查失败分别记录 Owned/TextMatches、回调指针、Agent 指针、窗口 ID 及实际/期望提示，确保下次可定位，不再据截图猜测。
+
+国服 API 15 构建零警告零错误，52 项检查通过（46 项离线策略、6 项国服数据）。通用确认窗在实际游戏中的回调映射和点击效果未实机验收；不能将离线检查当作自动补齐成功。

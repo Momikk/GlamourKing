@@ -3,7 +3,7 @@
     "Author": "Momikk",
     "Name": "套装之王 SuitKing",
     "InternalName": "SuitKing",
-    "AssemblyVersion": "0.1.0.12",
+    "AssemblyVersion": "0.1.0.13",
     "Description": "使用游戏原生 UI 汇总物品栏与兵装库中的套装幻影化装备，采用紧凑行距、左侧装备套装过滤和单击分类；默认打开可补齐，支持按钮批量补入已有套装，原生装备选择列表中可补齐名称标红。可通过 /suitking 或 /sking 打开。",
     "ApplicableVersion": "any",
     "RepoUrl": "https://github.com/Momikk/SuitKing",
@@ -21,11 +21,11 @@
     "Punchline": "汇总物品栏和兵装库中支持套装幻影化的装备。",
     "AcceptsFeedback": true,
     "DownloadCount": 0,
-    "LastUpdate": 1791986964,
+    "LastUpdate": 1791987606,
     "IsTestingExclusive": false,
-    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.12.zip",
-    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.12.zip",
+    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.13.zip",
+    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.13.zip",
     "IsHide": false,
-    "Changelog": "版本 0.1.0.12\n· 修复自动补齐在点击“是”前过早停止。\n· 补齐模式改在确认后、最终提交前检查。\n· 等待确认窗口关闭，避免关闭动画触发停止。\n· 保留目标核对，不创建新套装、不重复提交。\n· 修复后的原生点击流程待游戏内验证。\nEnglish\n· Fix stopping before clicking Yes on the merge prompt.\n· Check existing-outfit mode after confirmation, before submission.\n· Wait for the confirmation window's closing animation.\n· Keep target checks and prevent new outfits or duplicate submission.\n· Repaired native clicks await in-game validation."
+    "Changelog": "版本 0.1.0.13\n· 修正确认窗归属识别，核对原生回调处理者。\n· 解码提示富文本，匹配国服实际合并文字。\n· 区分文字、归属和点击失败，补充日志诊断。\n· 保留装备与批次保护，实际点击待游戏验证。\nEnglish\n· Check native callback ownership for merge confirmations.\n· Decode rich text and match the actual CN merge prompt.\n· Separate text, ownership and click failures in diagnostics.\n· Keep item/batch safeguards; native clicks await validation."
   }
 ]

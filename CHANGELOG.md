@@ -1,5 +1,24 @@
 # 更新记录
 
+## 0.1.0.13 — 2026-10-14
+
+· 修复通用“是/否”合并确认窗依赖专用窗口编号的归属判断，改为核对游戏实际注册的回调处理者。<br>
+· 按游戏富文本解码提示，匹配本机国服 Addon 表第 15663 条已有套装合并文字。<br>
+· 将提示文字、弹窗归属和按钮事件失败分别报告，并在 /xllog 记录详细诊断。<br>
+· 保留当前来源装备、已有套装和提交批次检查，不接受其他操作的确认提示。
+
+编译与 52 项回归/国服数据检查通过，实际提示已从本机游戏数据核对。上一版报错同时包含文字与归属判断，无法仅凭截图确定是哪项失败；本版修正识别路径并补充诊断，实际确认点击仍待游戏内验证。
+
+### English
+
+· Validate generic merge-confirmation ownership through the game's registered callback handler instead of specialized dialog IDs.<br>
+· Decode the game's rich-text prompt and compare it with CN Addon row 15663.<br>
+· Report text, ownership and button-event failures separately, with detailed diagnostics in /xllog.<br>
+· Retain source-item, existing-outfit and batch checks; reject unrelated confirmations.
+
+Compilation and 52 regression/CN-data checks pass; the actual prompt was verified from local game data. The earlier combined error could not identify which check failed from the screenshot alone. Native confirmation still needs in-game validation.
+
+
 ## 0.1.0.12 — 2026-10-14
 
 · 修复自动补齐在“是否并入已有套装”提示前，过早检查补齐模式并停止的问题。<br>
