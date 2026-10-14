@@ -18,11 +18,14 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IFramework Framework { get; private set; } = null!;
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
+    [PluginService] internal static ITextureProvider Textures { get; private set; } = null!;
+    [PluginService] internal static IAddonLifecycle Addons { get; private set; } = null!;
     [PluginService] internal static IDataManager Data { get; private set; } = null!;
     [PluginService] internal static IPlayerState Player { get; private set; } = null!;
 
     private readonly WindowSystem windowSystem = new("SuitKing");
     private readonly MainWindow mainWindow;
+    private readonly NativeEquipmentHighlighter highlighter;
     private long nextScan;
     private ulong characterId;
     private bool selectionWasOpen;
@@ -37,6 +40,7 @@ public sealed class Plugin : IDalamudPlugin
         Config = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         mainWindow = new MainWindow(this);
         windowSystem.AddWindow(mainWindow);
+        highlighter = new NativeEquipmentHighlighter(this);
         CommandsAdd(CommandName);
         CommandsAdd("/sking");
         PluginInterface.UiBuilder.Draw += windowSystem.Draw;
@@ -50,6 +54,7 @@ public sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
+        highlighter.Dispose();
         Framework.Update -= OnFrameworkUpdate;
         PluginInterface.UiBuilder.Draw -= windowSystem.Draw;
         PluginInterface.UiBuilder.OpenMainUi -= OpenMainUi;
@@ -82,13 +87,18 @@ public sealed class Plugin : IDalamudPlugin
         if (open != IsDresserOpen)
         {
             IsDresserOpen = open;
-            mainWindow.IsOpen = open;
+            if (open) mainWindow.OpenOnCompletable();
+            else
+            {
+                mainWindow.IsOpen = false;
+                highlighter.Restore();
+            }
             Inventory.Clear();
             nextScan = 0;
         }
         if (selectionOpen && !selectionWasOpen)
         {
-            mainWindow.IsOpen = true;
+            mainWindow.OpenOnCompletable();
             nextScan = 0;
         }
         selectionWasOpen = selectionOpen;
@@ -112,6 +122,10 @@ public sealed class Plugin : IDalamudPlugin
 
     internal void RequestRefresh() => nextScan = 0;
     internal void SaveConfiguration() => PluginInterface.SavePluginConfig(Config);
-    private void OnCommand(string command, string args) => mainWindow.Toggle();
-    private void OpenMainUi() => mainWindow.IsOpen = true;
+    private void OnCommand(string command, string args)
+    {
+        if (mainWindow.IsOpen) mainWindow.IsOpen = false;
+        else mainWindow.OpenOnCompletable();
+    }
+    private void OpenMainUi() => mainWindow.OpenOnCompletable();
 }

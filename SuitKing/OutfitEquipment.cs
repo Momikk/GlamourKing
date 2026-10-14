@@ -1,8 +1,8 @@
 namespace SuitKing;
 
 internal sealed record InventoryEntry(uint ItemId, bool HighQuality, string Location, int Slot, ushort Condition, bool? RegisteredToGearset = null);
-internal sealed record OutfitInfo(string ItemName, string SetNames, IReadOnlyList<OutfitDefinition>? Sets = null);
-internal sealed record OutfitEquipment(uint ItemId, string Name, bool HighQuality, string Location, int Slot, ushort Condition, string SetNames, bool? RegisteredToGearset = null, OutfitAssessment? Assessment = null);
+internal sealed record OutfitInfo(string ItemName, string SetNames, IReadOnlyList<OutfitDefinition>? Sets = null, uint IconId = 0, string Part = "其他");
+internal sealed record OutfitEquipment(uint ItemId, string Name, bool HighQuality, string Location, int Slot, ushort Condition, string SetNames, bool? RegisteredToGearset = null, OutfitAssessment? Assessment = null, uint IconId = 0, string Part = "其他");
 
 internal static class OutfitListBuilder
 {
@@ -19,9 +19,9 @@ internal static class OutfitListBuilder
             if (info is null)
                 continue;
             result.Add(new(entry.ItemId, info.ItemName, entry.HighQuality, entry.Location,
-                entry.Slot, entry.Condition, info.SetNames, entry.RegisteredToGearset));
+                entry.Slot, entry.Condition, info.SetNames, entry.RegisteredToGearset, IconId: info.IconId, Part: info.Part));
         }
-        return result.OrderBy(item => item.Name, StringComparer.Ordinal)
+        return result.OrderBy(item => EquipmentParts.Rank(item.Part)).ThenBy(item => item.Name, StringComparer.Ordinal)
             .ThenBy(item => item.Location, StringComparer.Ordinal).ThenBy(item => item.Slot).ToArray();
     }
 }

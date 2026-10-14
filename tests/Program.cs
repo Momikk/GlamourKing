@@ -69,6 +69,24 @@ Check(OutfitStateEvaluator.Evaluate(10, [setA], [new(100, new HashSet<uint> { 10
 Check(OutfitStateEvaluator.Evaluate(10, [setA], [partial]).State == OutfitStorageState.Saved
     && OutfitStateEvaluator.Evaluate(10, [setA], []).State == OutfitStorageState.NotCreated,
     "Refresh after restoring outfit removes old saved state");
+var partFixture = EquipmentParts.Order.Reverse().Select((part, i) => new InventoryEntry((uint)i + 1000, false, "物品栏", i, 30000)).ToArray();
+var partNames = partFixture.ToDictionary(entry => entry.ItemId, entry => new OutfitInfo("装备" + entry.ItemId, "套装", Part: EquipmentParts.Order.Reverse().ElementAt(entry.Slot)));
+Check(OutfitListBuilder.Build(partFixture, id => partNames.GetValueOrDefault(id)).Select(item => item.Part).SequenceEqual(EquipmentParts.Order),
+    "Equipment order is main/off/head/body/hands/legs/feet/ears/neck/wrists/rings");
+Check(EquipmentParts.Group("头部") == EquipmentParts.Group("手部") && EquipmentParts.Group("耳部") == EquipmentParts.Group("颈部"),
+    "Part groups match game category order");
+var highlightFixture = new[] { copies[0] with { Name = "可补齐装备", Assessment = new(OutfitStorageState.CanComplete, "") },
+    copies[0] with { Name = "已保存装备", Assessment = new(OutfitStorageState.Saved, "") },
+    copies[0] with { Name = "未建立装备", Assessment = new(OutfitStorageState.NotCreated, "") },
+    copies[0] with { Name = "待确认装备", Assessment = new(OutfitStorageState.Unknown, "") } };
+var targets = NativeNameHighlightPolicy.Targets(highlightFixture);
+Check(targets.SetEquals(["可补齐装备"]), "Native highlighting excludes saved, uncreated and unknown items");
+Check(NativeNameHighlightPolicy.Match("可补齐装备", targets) != null, "Exact native equipment label matches");
+Check(NativeNameHighlightPolicy.Match("可补齐装备★", targets) != null, "Formatting symbol suffix does not prevent highlight");
+Check(NativeNameHighlightPolicy.Match("可补齐装备改良型", targets) == null, "Prefix sharing does not highlight another equipment name");
+Check(NativeNameHighlightPolicy.Targets([highlightFixture[0], highlightFixture[1] with { Name = "可补齐装备" }]).Count == 0,
+    "Ambiguous equal names with different states are not painted");
+Check(NativeNameHighlightPolicy.Targets([]).Count == 0, "Cleared snapshot has no native highlight targets");
 if (args.Length == 0) return;
 using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
 var items = game.Excel.GetSheet<Item>(Lumina.Data.Language.ChineseSimplified);
@@ -97,3 +115,5 @@ Check(liveCatalog.Get(ordinary.RowId) is null, "Actual plugin catalog excludes s
 var scan = OutfitListBuilder.Build([new(marked.RowId, false, "兵装库·身体", 1, 30000),
     new(ordinary.RowId, false, "物品栏 4", 20, 30000)], liveCatalog.Get);
 Check(scan.Count == 1 && scan[0].ItemId == marked.RowId, "CN catalog integration selects only marked equipment");
+
+Check(liveCatalog.Get(marked.RowId)?.Part == "身体" && liveCatalog.Get(marked.RowId)?.IconId > 0, "Local CN item resolves equipment part and real icon" );

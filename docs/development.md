@@ -45,3 +45,5 @@ dotnet run --project tests/SuitKing.Tests.csproj -c Release -- '你的国服目�
 装备套装过滤使用游戏原生 IsItemRegisteredToGearset，按具体 InventoryItem 判断而非只比对物品 ID。勾选框只影响显示，原始快照保留所有候选装备；配置通过 Dalamud 保存。验收时以用户当前 36 件候选、过滤后 30 件为对照，并确认切换、搜索、重载及角色切换。
 
 套装保存状态只在 MirageManager.PrismBoxLoaded 为真时读取。PrismBoxItemIds 中映射到 MirageStoreSetItem 的条目才作为套装，保留列顺序的 11 个部位用 IsSetSlotUnlocked 判断是否已保存，不把单独存放的散件算作套装。状态分类是对存储记录的结构判断，不保证物品当前满足品质、耐久或其他提交条件。游戏内验收以用户提供的“已保存相同套装”和“发现了缺少此装备的现有套装”示例为对照，并补充未建立的实际样例。
+
+0.1.0.8 的界面默认打开可补齐标签，装备图标/部位由本机 Item 表提供，不再显示品质和位置列，后者保留在名称悬停提示。原生标红监听 MiragePrismPrismBoxCrystallize 的 PreDraw 与 PreFinalize，遍历实时树列表渲染器查找装备名称；先保存原始文本和颜色，再临时修改显示。只从实时节点恢复自身改动，不解引用缓存指针。实机验收应确认补齐、翻页、滚动、过滤、选中行、关闭和禁用后的文字与颜色恢复。

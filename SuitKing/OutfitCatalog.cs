@@ -32,10 +32,28 @@ internal sealed class OutfitCatalog(ExcelSheet<MirageStoreSetItemLookup> lookup,
         }
         OutfitInfo? info = null;
         if (setNames.Count != 0 && items.TryGetRow(itemId, out var itemRow))
-            info = new(itemRow.Name.ExtractText(), string.Join("、", setNames.Distinct()), definitions);
+            info = new(itemRow.Name.ExtractText(), string.Join("、", setNames.Distinct()), definitions, itemRow.Icon, GetPart(itemRow));
         cache[itemId] = info;
         return info;
     }
+    private static string GetPart(Item item)
+    {
+        if (!item.EquipSlotCategory.IsValid) return "其他";
+        var slot = item.EquipSlotCategory.Value;
+        if (slot.MainHand == 1) return "主手";
+        if (slot.OffHand == 1) return "副手";
+        if (slot.Head == 1) return "头部";
+        if (slot.Body == 1) return "身体";
+        if (slot.Gloves == 1) return "手部";
+        if (slot.Legs == 1) return "腿部";
+        if (slot.Feet == 1) return "脚部";
+        if (slot.Ears == 1) return "耳部";
+        if (slot.Neck == 1) return "颈部";
+        if (slot.Wrists == 1) return "腕部";
+        if (slot.FingerL == 1 || slot.FingerR == 1) return "戒指";
+        return "其他";
+    }
+
     // Column order is the client's outfit unlock-bit order; keep empty slots in place.
     internal static uint[] PiecesInOrder(MirageStoreSetItem set) =>
     [
