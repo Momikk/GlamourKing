@@ -21,11 +21,11 @@
     "Punchline": "汇总物品栏和兵装库中支持套装幻影化的装备。",
     "AcceptsFeedback": true,
     "DownloadCount": 0,
-    "LastUpdate": 1791970976,
+    "LastUpdate": 1791972146,
     "IsTestingExclusive": false,
     "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.9.zip",
     "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.9.zip",
     "IsHide": false,
-    "Changelog": "版本 0.1.0.9\n主窗口改用游戏原生 UI。\n紧凑行距，隐藏套装开关移至左侧。\n默认可补齐，保留分组与名称标红。\n原生显示及关闭卸载待实机确认。\nEnglish\nNative UI with compact rows and a left-side filter.\nCompletable opens by default; grouping and highlighting retained.\nNative rendering and unload await in-game validation."
+    "Changelog": "版本 0.1.0.9\n主窗口改用游戏原生 UI。\r\n过滤开关文字改为“隐去套装中的物品”。\n紧凑行距，隐藏套装开关移至左侧。\n默认可补齐，保留分组与名称标红。\n原生显示及关闭卸载待实机确认。\nEnglish\nNative UI with compact rows and a left-side filter.\r\nCheckbox label now matches the native Chinese wording.\nCompletable opens by default; grouping and highlighting retained.\nNative rendering and unload await in-game validation."
   }
 ]

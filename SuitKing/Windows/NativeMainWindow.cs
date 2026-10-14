@@ -50,7 +50,7 @@ internal sealed unsafe class NativeMainWindow(Plugin plugin) : NativeAddon
         var width = ContentSize.X;
         hideCheckbox = new CheckboxNode
         {
-            String = "隐藏套装中的物品", IsChecked = plugin.Config.HideGearsetItems,
+            String = "隐去套装中的物品", IsChecked = plugin.Config.HideGearsetItems,
             Position = origin, Size = new Vector2(250, 24),
             OnClick = value =>
             {
