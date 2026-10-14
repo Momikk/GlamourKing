@@ -3,14 +3,14 @@
     "Author": "Momikk",
     "Name": "套装之王 SuitKing",
     "InternalName": "SuitKing",
-    "AssemblyVersion": "0.1.0.4",
-    "Description": "基准版本：检测幻化柜界面，并显示测试窗口。可通过 /suitking 或 /sking 手动打开。",
+    "AssemblyVersion": "0.1.0.5",
+    "Description": "打开投影台后汇总全部物品栏与兵装库中的套装幻影化装备，显示品质、位置与所属套装。可通过 /suitking 或 /sking 打开。",
     "ApplicableVersion": "any",
     "RepoUrl": "https://github.com/Momikk/SuitKing",
     "Tags": [
       "glamour",
       "dresser",
-      "test"
+      "outfit"
     ],
     "DalamudApiLevel": 15,
     "LoadRequiredState": 0,
@@ -18,13 +18,13 @@
     "CanUnloadAsync": false,
     "LoadPriority": 0,
     "IconUrl": "https://raw.githubusercontent.com/Momikk/SuitKing/main/images/icon.png",
-    "Punchline": "打开幻化柜时显示测试窗口。",
+    "Punchline": "汇总物品栏和兵装库中支持套装幻影化的装备。",
     "AcceptsFeedback": true,
-    "IsTestingExclusive": false,
-    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.4.zip",
-    "LastUpdate": 1791904440,
-    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.4.zip",
     "DownloadCount": 0,
-    "IsHide": false
+    "LastUpdate": 1791943671,
+    "IsTestingExclusive": false,
+    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.5.zip",
+    "IsHide": false,
+    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.5.zip"
   }
 ]

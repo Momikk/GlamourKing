@@ -10,6 +10,7 @@ namespace SuitKing;
 public sealed class Plugin : IDalamudPlugin
 {
     public const string DresserAddonName = "MiragePrismPrismBox";
+    private const string SelectionAddonName = "MiragePrismPrismBoxCrystallize";
     private const string CommandName = "/suitking";
 
     [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
@@ -17,32 +18,33 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IFramework Framework { get; private set; } = null!;
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
+    [PluginService] internal static IDataManager Data { get; private set; } = null!;
+    [PluginService] internal static IPlayerState Player { get; private set; } = null!;
 
     private readonly WindowSystem windowSystem = new("SuitKing");
-    private readonly TestWindow testWindow;
+    private readonly MainWindow mainWindow;
+    private long nextScan;
+    private ulong characterId;
+    private bool selectionWasOpen;
+    private string? lastError;
 
+    internal OutfitInventoryReader Inventory { get; } = new();
     public bool IsDresserOpen { get; private set; }
-    public int DresserOpenCount { get; private set; }
-    public DateTimeOffset? LastDresserOpenedAt { get; private set; }
 
     public Plugin()
     {
-        testWindow = new TestWindow(this);
-        windowSystem.AddWindow(testWindow);
-
-        CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
-        {
-            HelpMessage = "打开或关闭套装之王测试窗口。",
-        });
-
-        CommandManager.AddHandler("/sking", new CommandInfo(OnCommand) { HelpMessage = "打开或关闭套装之王测试窗口。" });
-
+        mainWindow = new MainWindow(this);
+        windowSystem.AddWindow(mainWindow);
+        CommandsAdd(CommandName);
+        CommandsAdd("/sking");
         PluginInterface.UiBuilder.Draw += windowSystem.Draw;
         PluginInterface.UiBuilder.OpenMainUi += OpenMainUi;
         Framework.Update += OnFrameworkUpdate;
-
-        Log.Information("SuitKing baseline loaded (API {ApiLevel}).", PluginInterface.Manifest.DalamudApiLevel);
+        Log.Information("SuitKing loaded (API {ApiLevel}).", PluginInterface.Manifest.DalamudApiLevel);
     }
+
+    private void CommandsAdd(string command) => CommandManager.AddHandler(command,
+        new CommandInfo(OnCommand) { HelpMessage = "打开或关闭套装之王套装装备列表。" });
 
     public void Dispose()
     {
@@ -52,37 +54,61 @@ public sealed class Plugin : IDalamudPlugin
         CommandManager.RemoveHandler(CommandName);
         CommandManager.RemoveHandler("/sking");
         windowSystem.RemoveAllWindows();
-        Log.Information("SuitKing baseline unloaded.");
+        Inventory.Clear();
+    }
+
+    private bool IsVisible(string name)
+    {
+        var addon = GameGui.GetAddonByName(name);
+        return !addon.IsNull && addon.IsReady && addon.IsVisible;
     }
 
     private void OnFrameworkUpdate(IFramework framework)
     {
-        // Reacquire the public wrapper each tick; never retain a game UI pointer.
-        // Polling also handles hot-loading while the dresser is already open and
-        // visibility changes that do not create a new addon instance.
-        var addon = GameGui.GetAddonByName(DresserAddonName);
-        var isOpen = !addon.IsNull && addon.IsReady && addon.IsVisible;
-
-        if (isOpen == IsDresserOpen)
-            return;
-
-        IsDresserOpen = isOpen;
-
-        if (isOpen)
+        var contentId = Player.ContentId;
+        if (contentId != characterId)
         {
-            DresserOpenCount++;
-            LastDresserOpenedAt = DateTimeOffset.Now;
-            testWindow.IsOpen = true;
-            Log.Information("Glamour dresser opened; showing test UI (#{OpenCount}).", DresserOpenCount);
+            characterId = contentId;
+            Inventory.Clear();
+            nextScan = 0;
+            IsDresserOpen = false;
+            selectionWasOpen = false;
+            mainWindow.IsOpen = false;
         }
-        else
+        var selectionOpen = contentId != 0 && IsVisible(SelectionAddonName);
+        var open = contentId != 0 && (IsVisible(DresserAddonName) || selectionOpen);
+        if (open != IsDresserOpen)
         {
-            testWindow.IsOpen = false;
-            Log.Information("Glamour dresser closed; hiding test UI.");
+            IsDresserOpen = open;
+            mainWindow.IsOpen = open;
+            Inventory.Clear();
+            nextScan = 0;
+        }
+        if (selectionOpen && !selectionWasOpen)
+        {
+            mainWindow.IsOpen = true;
+            nextScan = 0;
+        }
+        selectionWasOpen = selectionOpen;
+        if (!open || Environment.TickCount64 < nextScan)
+            return;
+        nextScan = Environment.TickCount64 + 1000;
+        try
+        {
+            Inventory.Refresh();
+            lastError = null;
+        }
+        catch (Exception exception)
+        {
+            Inventory.Fail("读取失败，请查看 /xllog 中的 SuitKing 报错。");
+            nextScan = Environment.TickCount64 + 5000;
+            if (lastError != exception.Message)
+                Log.Error(exception, "SuitKing could not read outfit equipment.");
+            lastError = exception.Message;
         }
     }
 
-    private void OnCommand(string command, string args) => testWindow.Toggle();
-
-    private void OpenMainUi() => testWindow.IsOpen = true;
+    internal void RequestRefresh() => nextScan = 0;
+    private void OnCommand(string command, string args) => mainWindow.Toggle();
+    private void OpenMainUi() => mainWindow.IsOpen = true;
 }

@@ -1,48 +1,39 @@
 # 开发与验证
 
-## 构建
-
-安装 .NET 10 SDK，并通过 XIVLauncher 启动过一次带 Dalamud 的游戏。在仓库目录执行：
+使用 .NET 10 SDK 与 Dalamud API 15 开发程序集，在仓库根目录运行：
 
 ```powershell
 .\build.ps1
 ```
 
-脚本优先查找国服 XIVLauncherCN 的开发程序集，再查找 XIVLauncher；只支持 API 15。如需使用另一套程序集，先指定 `DALAMUD_HOME`：
+构建脚本优先查找 XIVLauncherCN，再查找 XIVLauncher。可通过 `DALAMUD_HOME` 指定开发程序集目录。生成的 DLL 与 manifest 在 `SuitKing/bin/Release/`，SDK 安装包在 `SuitKing/bin/Release/SuitKing/latest.zip`。不要分发 Dalamud 自带程序集。
+
+## 回归检查
+
+运行跨分页汇总、重复副本、品质、武器分类、缺失与移除场景：
 
 ```powershell
-$env:DALAMUD_HOME = '你的 Dalamud 开发程序集目录'
-.\build.ps1 -Configuration Release
+dotnet run --project tests/SuitKing.Tests.csproj -c Release
 ```
 
-输出 DLL 和生成的 manifest 位于 `SuitKing/bin/Release/`；SDK 打包结果位于 `SuitKing/bin/Release/SuitKing/latest.zip`。不要把 Dalamud 自带程序集复制进插件分发包。
+传入本机国服 `game/sqpack` 完整路径，可额外验证真实物品与套装数据：
 
-## 加载与验收
-
-### 从第三方插件仓库安装
-
-在 `/xlsettings` → 插件 → 第三方插件中添加以下链接，启用该仓库并保存设置：
-
-```text
-https://raw.githubusercontent.com/Momikk/DalamudPlugins/main/pluginmaster.json
+```powershell
+dotnet run --project tests/SuitKing.Tests.csproj -c Release -- '你的国服目录/game/sqpack'
 ```
 
-随后在 `/xlplugins` 中刷新插件列表，搜索“套装之王”或 `SuitKing` 并安装。此清单发布的是 API 15 基准版本，安装包位于仓库的 `dist/`。同一版本请只采用仓库安装或开发插件加载其中一种方式。
+测试项目默认从 XIVLauncherCN 的 dev 目录引用 Lumina；可用 `-p:DalamudHome=你的开发程序集目录` 覆盖。测试不接触运行中的游戏进程。
 
-### 本地开发插件加载
+## 读取与筛选
 
-1. 输入 `/xlsettings`，进入 Experimental / 实验性设置，将输出目录中 `SuitKing.dll` 的完整路径添加到 Dev Plugin Locations / 开发插件位置。
-2. 输入 `/xlplugins`，在开发插件页找到“套装之王”并启用。
-3. 打开旅馆内的幻化柜，确认测试窗口显示“已打开”；关闭柜子，确认窗口收起。
-4. 用 `/suitking` 手动打开测试窗口；用 `/xllog` 查看加载、柜子打开/关闭及卸载日志。
+窗口状态使用 IGameGui 检测 `MiragePrismPrismBox` 与 `MiragePrismPrismBoxCrystallize`。仅在已登录并打开投影台时，在 Framework.Update 中读取 InventoryManager 的物品栏四页和 11 个兵装库分类；不保留原生指针，不写游戏内存，不调用收纳、还原或换页方法。
 
-应使用与当前游戏分发渠道匹配的 Dalamud 程序集。框架 API 相同不等于所有原生功能跨区服兼容；此版本仅使用公开的界面包装器。
+通过本机游戏 `MirageStoreSetItemLookup` 中的有效套装映射筛选，每个副本保留品质和所在位置。该判断表示物品属于支持套装幻影化的套装，不表示整套已集齐、装备耐久等收纳条件已满足。未加载容器明确标为部分结果；关闭投影台、退出或切换角色时清空快照。自动读取间隔为一秒，读取异常时清空结果并延迟重试。
 
 ## 游戏内验收
 
-确认正常启用、首次打开柜子、关闭后重开、手动关闭测试窗口、柜子已打开时重新加载插件，以及禁用后再次启用。重载后不应出现重复命令、重复窗口或重复打开日志。游戏 UI 隐藏时窗口由 Dalamud UiBuilder 的默认行为管理，不把隐藏 UI 当成库存加载状态。
+在插件安装器更新 SuitKing；本地开发时，也可把 `SuitKing.dll` 的完整路径加入开发插件位置。请只选择一种加载方式。
 
-编译成功只能确认 API 和打包兼容，实际游戏加载与打开柜子的行为需在游戏中验收。
+打开投影台，核对标记装备跨物品栏与兵装库分类均出现在列表中，未标记的示例不出现。同物品 HQ/NQ 或多份副本应分别列出；移动、取出和收纳后应更新，切换游戏分页不应改变汇总范围。检查搜索、立即刷新、手动关闭、重新打开投影台、退出角色及插件禁用后命令注销。数据读取失败时查看 `/xllog`。
 
-本次基准版的构建与验证记录见 [validation.md](validation.md)。
-
+构建与离线检查不等于游戏交互已经通过。记录见 [validation.md](validation.md)。

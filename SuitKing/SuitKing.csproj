@@ -1,13 +1,14 @@
 <Project Sdk="Dalamud.NET.Sdk/15.0.0">
   <PropertyGroup>
-    <Version>0.1.0.4</Version>
+    <Version>0.1.0.5</Version>
     <Author>Momikk</Author>
     <Name>套装之王 SuitKing</Name>
-    <Punchline>打开幻化柜时显示测试窗口。</Punchline>
-    <Description>基准版本：检测幻化柜界面，并显示测试窗口。可通过 /suitking 或 /sking 手动打开。</Description>
+    <Punchline>汇总物品栏和兵装库中支持套装幻影化的装备。</Punchline>
+    <Description>打开投影台后汇总全部物品栏与兵装库中的套装幻影化装备，显示品质、位置与所属套装。可通过 /suitking 或 /sking 打开。</Description>
     <RepoUrl>https://github.com/Momikk/SuitKing</RepoUrl>
     <IconUrl>https://raw.githubusercontent.com/Momikk/SuitKing/main/images/icon.png</IconUrl>
-    <Tags>glamour;dresser;test</Tags>
+    <Tags>glamour;dresser;outfit</Tags>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
