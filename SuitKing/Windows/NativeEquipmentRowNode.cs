@@ -20,7 +20,12 @@ internal sealed class NativeEquipmentRowNode : ListItemNode<NativeEquipmentRow>,
     {
         // The list is informational; hovering shows details without triggering inventory actions.
         EnableSelection = false;
-        icon = new IconImageNode { Position = new Vector2(2, 2), Size = new Vector2(24) };
+        // Node size alone does not scale AtkImageNode's texture. FitTexture enables
+        // AutoFit + Stretch, using the complete loaded icon inside the 24 px box.
+        icon = new IconImageNode
+        {
+            Position = new Vector2(2, 2), Size = new Vector2(24), FitTexture = true,
+        };
         icon.AttachNode(this);
         group = new TextNode { FontSize = 12, AlignmentType = AlignmentType.Left };
         group.AttachNode(this);

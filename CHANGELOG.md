@@ -1,5 +1,22 @@
 # 更新记录
 
+## 0.1.0.10 — 2026-10-14
+
+- 修复原生装备图标未随节点尺寸缩放，导致越过行分隔线并遮挡名称的问题。
+- 开启图标纹理自适应与拉伸，将完整图标缩放到 24 × 24 像素，保持 28 像素紧凑行距。
+- 保留“隐去套装中的物品”原生用语、左侧过滤和默认可补齐分类。
+
+国服 API 15 编译通过。图标实际显示、滚动复用与不同 UI 缩放下的效果仍待游戏内确认。
+
+### English
+
+- Fix native equipment icons rendering beyond their row and overlapping names because node dimensions alone did not scale the texture.
+- Enable texture auto-fit and stretch to display the full icon within 24 × 24 pixels, keeping compact 28 px rows.
+- Retain the native Chinese checkbox wording, left-side filter and default Completable category.
+
+CN API 15 compilation passes. Icon rendering, recycled rows during scrolling and different UI scales still require in-game confirmation.
+
+
 ## 0.1.0.9 — 2026-10-14
 
 同版本文字修订：过滤开关改为“隐去套装中的物品”，与游戏原生用语一致。

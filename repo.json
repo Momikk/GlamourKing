@@ -3,7 +3,7 @@
     "Author": "Momikk",
     "Name": "套装之王 SuitKing",
     "InternalName": "SuitKing",
-    "AssemblyVersion": "0.1.0.9",
+    "AssemblyVersion": "0.1.0.10",
     "Description": "使用游戏原生 UI 汇总物品栏与兵装库中的套装幻影化装备，采用紧凑行距、左侧装备套装过滤和单击分类；默认打开可补齐，原生装备选择列表中可补齐名称标红。可通过 /suitking 或 /sking 打开。",
     "ApplicableVersion": "any",
     "RepoUrl": "https://github.com/Momikk/SuitKing",
@@ -21,11 +21,11 @@
     "Punchline": "汇总物品栏和兵装库中支持套装幻影化的装备。",
     "AcceptsFeedback": true,
     "DownloadCount": 0,
-    "LastUpdate": 1791972146,
+    "LastUpdate": 1791972302,
     "IsTestingExclusive": false,
-    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.9.zip",
-    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.9.zip",
+    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.10.zip",
+    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.10.zip",
     "IsHide": false,
-    "Changelog": "版本 0.1.0.9\n主窗口改用游戏原生 UI。\r\n过滤开关文字改为“隐去套装中的物品”。\n紧凑行距，隐藏套装开关移至左侧。\n默认可补齐，保留分组与名称标红。\n原生显示及关闭卸载待实机确认。\nEnglish\nNative UI with compact rows and a left-side filter.\r\nCheckbox label now matches the native Chinese wording.\nCompletable opens by default; grouping and highlighting retained.\nNative rendering and unload await in-game validation."
+    "Changelog": "版本 0.1.0.10\n修复装备图标越过行边界、遮挡名称。\n完整图标缩放至 24 像素，保留紧凑行距。\n保留“隐去套装中的物品”原生文字。\n图标显示与 UI 缩放效果待游戏内确认。\nEnglish\nFix oversized icons overlapping names and adjacent rows.\nFit full icons to 24 px while retaining compact rows.\nKeep the native Chinese checkbox wording.\nIcon rendering and UI scaling await in-game confirmation."
   }
 ]
