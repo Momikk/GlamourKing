@@ -2,6 +2,12 @@
 
 ## 0.1.0.15 — 2026-10-14
 
+文档更新 / Documentation update
+
+· 精简 README，合并功能与使用说明，移除预览，缩短反馈与声明。<br>
+· Simplify the README: merge features and usage, remove the preview, and shorten feedback and the project statement.
+
+
 · 修复勾选“隐去套装中的物品”时，打开投影台和补齐后刷新短暂显示未过滤装备的问题。<br>
 · 读取已保存装备套装的物品 ID 与 HQ/NQ 登记快照，连续一致后才发布完整装备分类结果。<br>
 · 数据尚未就绪时保留上一份完整结果，登记状态未知的装备不会在过滤开启时放行。<br>
