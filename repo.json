@@ -3,7 +3,7 @@
     "Author": "Momikk",
     "Name": "套装之王 SuitKing",
     "InternalName": "SuitKing",
-    "AssemblyVersion": "0.1.0.16",
+    "AssemblyVersion": "0.1.0.17",
     "Description": "使用游戏原生 UI 汇总物品栏与兵装库中的套装幻影化装备，采用紧凑行距、左侧装备套装过滤和单击分类；默认打开可补齐，支持按钮批量补入已有套装，原生装备选择列表中可补齐名称标红。增加收藏柜待收纳状态及一键存入，始终忽略穿戴和职业配装装备。可通过 /suitking 或 /sking 打开。",
     "ApplicableVersion": "any",
     "RepoUrl": "https://github.com/Momikk/SuitKing",
@@ -21,11 +21,11 @@
     "Punchline": "汇总物品栏和兵装库中支持套装幻影化的装备。",
     "AcceptsFeedback": true,
     "DownloadCount": 0,
-    "LastUpdate": 1792240560,
+    "LastUpdate": 1792242787,
     "IsTestingExclusive": false,
-    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.16.zip",
-    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.16.zip",
+    "DownloadLinkInstall": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.17.zip",
+    "DownloadLinkUpdate": "https://raw.githubusercontent.com/Momikk/SuitKing/main/dist/SuitKing-0.1.0.17.zip",
     "IsHide": false,
-    "Changelog": "版本 0.1.0.16\n· 增加可存收藏柜状态与分类，提示优先处理收藏柜。\n· 打开收藏柜自动列出待收纳装备，支持一键存入。\n· 始终忽略穿戴和职业配装装备，跳过重复副本。\n· 实际批量存入待游戏内验证。\nEnglish\n· Add armoire status and category with a priority reminder.\n· List pending items on armoire opening and support one-click storage.\n· Always exclude equipped and saved gearset items; skip duplicate copies.\n· In-game batch storage remains unverified."
+    "Changelog": "版本 0.1.0.17\n· 修复已打开收藏柜仍提示切换存入界面、无法一键存入的问题。\nEnglish\n· Fix one-click armoire storage incorrectly asking to open the deposit window."
   }
 ]

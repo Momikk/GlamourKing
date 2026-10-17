@@ -2,7 +2,6 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
-using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace SuitKing;
 
@@ -86,16 +85,13 @@ internal sealed unsafe class CabinetAutoStore(Plugin plugin)
             if (HasConfirmation()) { Stop("出现确认窗口，已停止自动收纳，请手动检查。"); return; }
             plugin.Inventory.Refresh(false);
             if (!plugin.Inventory.IsComplete || !plugin.Inventory.IsCabinetLoaded) return;
-            var nativeEligible = ReadNativeCandidates();
-            if (nativeEligible == null)
-            { Stop("请切换到收藏柜的存入界面。"); return; }
             while (pending.TryDequeue(out var item))
             {
                 if (ui->Cabinet.IsItemInCabinet(item.CabinetId!.Value)) { skipped++; continue; }
                 var snapshot = plugin.Inventory.CabinetEquipment.FirstOrDefault(entry => entry.CabinetId == item.CabinetId
                     && entry.Location == item.Location && entry.Slot == item.Slot && entry.HighQuality == item.HighQuality);
                 if (snapshot == null || snapshot.Condition < 30000 || !CabinetPolicy.CanStore(item.CabinetId, false, snapshot.RegisteredToGearset,
-                    plugin.Inventory.CountCabinetCopies(item.ItemId), nativeEligible.Contains(item.CabinetId!.Value))
+                    plugin.Inventory.CountCabinetCopies(item.ItemId))
                     || !SameSource(item) || IsProtected(item))
                 { skipped++; continue; }
                 // The native method accepts a Cabinet row ID, not a source slot. Reject duplicate
@@ -104,8 +100,14 @@ internal sealed unsafe class CabinetAutoStore(Plugin plugin)
                 waiting = true; // Latch BEFORE sending: no frame retries a storage request.
                 deadline = now + 15_000;
                 Status = $"正在存入 {completed} / {total} 件：{item.Name}";
+                // Store by Cabinet row ID across bags and armory. CabinetStore's visible-page
+                // array is not an all-inventory eligibility list and is not required here.
                 if (!ui->Cabinet.StoreCabinetItem(item.CabinetId!.Value))
-                    Stop("游戏拒绝收纳，请检查耐久和原生收纳条件。");
+                {
+                    Plugin.Log.Warning("SuitKing cabinet rejected {ItemId} / cabinet {CabinetId} from {Location}:{Slot}",
+                        item.ItemId, item.CabinetId, item.Location, item.Slot);
+                    Stop($"游戏未接受 {item.Name} 的收纳，请检查原生收纳条件。");
+                }
                 return;
             }
             Stop(skipped > 0 ? $"收纳结束，跳过 {skipped} 件重复副本、已收录或暂不满足条件的装备。" : "收藏柜收纳完成。");
@@ -155,23 +157,4 @@ internal sealed unsafe class CabinetAutoStore(Plugin plugin)
             || (!yesno.IsNull && yesno.IsVisible);
     }
 
-    private static HashSet<uint>? ReadNativeCandidates()
-    {
-        var agent = AgentCabinet.Instance();
-        var stage = AtkStage.Instance();
-        if (agent == null || agent->OpenMode != 0 || agent->Items == null || agent->ItemCount > 4096 || stage == null) return null;
-        var numbers = stage->GetNumberArrayData(NumberArrayType.CabinetStore);
-        if (numbers == null || numbers->IntArray == null || numbers->Size < 1) return null;
-        var count = numbers->IntArray[0];
-        if (count < 0 || count > 4096 || (count > 0 && 12L + (count - 1L) * 7 >= numbers->Size)) return null;
-        var ids = new HashSet<uint>();
-        for (var i = 0; i < count; i++)
-        {
-            var index = numbers->IntArray[12 + i * 7];
-            if (index < 0 || index >= agent->ItemCount) return null;
-            var id = agent->Items[index].Id;
-            ids.Add(id);
-        }
-        return ids;
-    }
 }

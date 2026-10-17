@@ -11,6 +11,11 @@ internal static class CabinetPolicy
         return outfit;
     }
 
-    internal static bool CanStore(uint? cabinetId, bool? stored, bool? registered, int copyCount, bool nativeEligible)
-        => cabinetId.HasValue && stored == false && registered == false && copyCount == 1 && nativeEligible;
+    internal static IReadOnlyList<OutfitEquipment> Candidates(IEnumerable<OutfitEquipment> equipment)
+        => equipment.Where(item => item.CabinetId.HasValue && item.InCabinet == false
+            && item.Assessment?.State == OutfitStorageState.CanStoreCabinet
+            && item.RegisteredToGearset == false).ToArray();
+
+    internal static bool CanStore(uint? cabinetId, bool? stored, bool? registered, int copyCount)
+        => cabinetId.HasValue && stored == false && registered == false && copyCount == 1;
 }

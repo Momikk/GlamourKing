@@ -32,8 +32,7 @@ internal sealed class OutfitInventoryReader
     private IReadOnlyList<InventoryEntry> cabinetCopies = [];
     public bool IsCabinetLoaded { get; private set; }
     public int CountCabinetCopies(uint itemId) => cabinetCopies.Count(item => item.ItemId == itemId);
-    public IReadOnlyList<OutfitEquipment> CabinetEquipment => Equipment.Where(item =>
-        item.Assessment?.State == OutfitStorageState.CanStoreCabinet && item.RegisteredToGearset == false).ToArray();
+    public IReadOnlyList<OutfitEquipment> CabinetEquipment => CabinetPolicy.Candidates(Equipment);
     public IReadOnlyList<OutfitEquipment> Equipment { get; private set; } = [];
     public string Status { get; private set; } = "打开投影台后读取物品栏和兵装库。";
     public bool IsComplete { get; private set; }

@@ -136,16 +136,26 @@ Check(CabinetPolicy.Assess(completable, 7, false, true) == completable,
     "Registered job gear is never offered for cabinet storage");
 Check(CabinetPolicy.Assess(completable, 7, false, null) == completable,
     "Unknown registration is never offered for cabinet storage");
-Check(CabinetPolicy.CanStore(7, false, false, 1, true), "One unprotected native-eligible copy can be stored");
-Check(!CabinetPolicy.CanStore(7, true, false, 1, true), "Already collected piece cannot be stored again");
-Check(!CabinetPolicy.CanStore(7, null, false, 1, true), "Unknown cabinet collection blocks storage");
-Check(!CabinetPolicy.CanStore(7, false, true, 1, true), "Job gear protection holds even with display filter disabled");
-Check(!CabinetPolicy.CanStore(7, false, null, 1, true), "Pending job gear registration blocks storage");
-Check(!CabinetPolicy.CanStore(7, false, false, 2, true), "Duplicate copies cannot be chosen by an ambiguous cabinet row request");
-Check(!CabinetPolicy.CanStore(7, false, false, 0, true), "Removed source copy cannot be submitted");
-Check(!CabinetPolicy.CanStore(7, false, false, 1, false), "Game-native rejection blocks storage");
-Check(!CabinetPolicy.CanStore(null, false, false, 1, true), "Missing cabinet row cannot authorize storage");
-Check(CabinetPolicy.CanStore(0, false, false, 1, true), "Cabinet collection row zero is a valid storage target");
+Check(CabinetPolicy.CanStore(7, false, false, 1), "One unprotected uncollected copy can be submitted");
+Check(!CabinetPolicy.CanStore(7, true, false, 1), "Already collected piece cannot be stored again");
+Check(!CabinetPolicy.CanStore(7, null, false, 1), "Unknown cabinet collection blocks storage");
+Check(!CabinetPolicy.CanStore(7, false, true, 1), "Job gear protection holds even with display filter disabled");
+Check(!CabinetPolicy.CanStore(7, false, null, 1), "Pending job gear registration blocks storage");
+Check(!CabinetPolicy.CanStore(7, false, false, 2), "Duplicate copies cannot be chosen by an ambiguous cabinet row request");
+Check(!CabinetPolicy.CanStore(7, false, false, 0), "Removed source copy cannot be submitted");
+Check(!CabinetPolicy.CanStore(null, false, false, 1), "Missing cabinet row cannot authorize storage");
+Check(CabinetPolicy.CanStore(0, false, false, 1), "Cabinet collection row zero is a valid storage target");
+var cabinetHead = new OutfitEquipment(10, "测试头部", false, "兵装库·头部", 1, 30000, "测试套装",
+    false, new(OutfitStorageState.CanStoreCabinet, ""), CabinetId: 0, InCabinet: false);
+var cabinetFeet = cabinetHead with { ItemId = 20, Location = "兵装库·脚部", CabinetId = 7 };
+Check(CabinetPolicy.Candidates([cabinetHead, cabinetFeet]).Count == 2,
+    "Cabinet candidates span armory categories without depending on the visible inventory page");
+Check(CabinetPolicy.Candidates([cabinetHead with { RegisteredToGearset = true }, cabinetFeet]).SequenceEqual([cabinetFeet]),
+    "Cross-category cabinet selection still excludes registered gear");
+Check(CabinetPolicy.Candidates([cabinetHead with { InCabinet = true }, cabinetFeet with { InCabinet = null }]).Count == 0,
+    "Collected and unknown cabinet records are never submitted from stale candidate labels");
+Check(CabinetPolicy.Candidates([cabinetHead with { CabinetId = null }]).Count == 0,
+    "Candidate selection requires an actual Cabinet row mapping");
 if (args.Length == 0) return;
 using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
 var nativePrompts = game.Excel.GetSheet<Addon>(Lumina.Data.Language.ChineseSimplified)

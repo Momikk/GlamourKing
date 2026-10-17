@@ -1,5 +1,13 @@
 # 更新记录
 
+## 0.1.0.17 — 2026-10-17
+
+· 修复已打开收藏柜仍提示切换存入界面、无法一键存入的问题。
+
+### English
+
+· Fix one-click armoire storage incorrectly asking to open the deposit window.
+
 ## 0.1.0.16 — 2026-10-17
 
 · 增加“可存收藏柜”状态与分类，自动补齐旁提示先处理收藏柜。<br>
