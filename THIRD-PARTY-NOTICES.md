@@ -12,3 +12,5 @@ Local changes: build with Dalamud.NET.Sdk 15 against the CN development assembli
 The cabinet candidate lookup and native storage entry point were checked against [HaselTweaks CabinetQuickStoreWindow](https://github.com/Haselnussbomber/HaselTweaks/blob/main/HaselTweaks/Windows/CabinetQuickStoreWindow.cs) (AGPL-3.0) and [FFXIVClientStructs](https://github.com/aers/FFXIVClientStructs). SuitKing implements its own inventory filtering, batch controller and native UI; neither reference project is bundled as a runtime dependency. This project is distributed under AGPL-3.0-only.
 
 Outfit restoration also references HaselTweaks `GlamourDresserAlertWindow.RestoreItem` and FFXIVClientStructs `MirageManager.RestorePrismBoxSetItem` / `StoreNewOutfit`. Quality normalization uses SuitKing's own preview, source tracking, confirmation validation and sequential operation controller.
+
+The bundled KamiToolKit includes a local NativeAddon title/subtitle lifecycle fix: values remain configurable while closed without accessing released window nodes. The original MIT license remains included.

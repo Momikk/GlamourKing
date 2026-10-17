@@ -102,3 +102,12 @@ OutfitSubmissionLayout.Pack 将有实际装备的来源按表列排序，排除�
 确认预览后进入 Restore 阶段，待 KamiToolKit 预览完全关闭并释放后，在框架更新中重新检查来源、记录与上下文，才发出一次取出请求；不在按钮关闭回调里立即提交。恢复前同时要求 PrismBoxRequested 和 PrismBoxLoaded，已有原生套装取出窗口也阻止启动。以 RestorePrismBoxSetItem 返回接受请求为部分修改警告的依据，排队或提交返回 false 时不再误报已有装备取出或降低品质。日志记录函数与实例地址、原始 HQ 套装 ID、投影台下标、恢复掩码、锁定位、加载状态和空位，不自动重试。
 
 本次只读核对：目标朴素寝室套装在 210 格，原始 ID 1045518，锁定位 0x4C/0，唯一保存部位为第 5 列裤子（恢复位 0x20），携带 HQ/NQ 同名裤子计数均为 0，物品栏空位 48。原生取出窗口可由用户正常打开。未执行取出、降低品质或存回；先前拒绝时未记录真实参数，无法确认根因。关闭预览后的调用与完整转换流程仍需实机验证，本版本不能视为已证实解决原始取出失败。
+
+
+## 0.1.0.22 预览重复打开的空引用
+
+用户提供的调用栈定位到 QualityPreviewWindow.Present → NativeAddon.Title setter → WindowNode.SetTitle。KamiToolKit 在 Close 后保留托管窗口包装对象，但其原生子节点已经释放；Present 在再次 Open 之前重复设置 Title，访问旧 WindowNode 发生空引用，尚未进入 Restore 阶段。
+
+移除 Present 中重复赋值的固定标题，保留 Plugin 创建预览时的初始标题。同步修正本仓库捆绑的 KamiToolKit NativeAddon.Title/Subtitle setter：总是保存配置值，仅在 InternalAddon 非空且未 Finalize 时更新原生节点。分配时原有 SetInitialState 会把保存的标题应用到新窗口，保证重新打开和关闭期间改标题均安全，不忽略已打开窗口的实时标题更新。
+
+新增 tests-native-ui/NativeUiLifecycle.Tests.csproj，直接测试构建后的 SuitKing.KamiToolKit.dll。使用未初始化的 WindowNode 模拟已释放的原生子节点，修复前复现同一路径的 NullReferenceException，修复后通过关闭状态赋标题、活动状态实时更新、Finalize 后禁止旧节点写入、保存下次分配标题四项检查。测试不分配游戏窗口、不执行游戏原生函数；活动状态使用仅计数的覆盖方法。原有装备策略检查 150 项通过。预览的实机重复打开及随后实际取出、降低和存回仍待验收。

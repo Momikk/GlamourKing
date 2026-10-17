@@ -19,7 +19,6 @@ internal sealed unsafe class QualityPreviewWindow(Plugin plugin) : NativeAddon
         if (IsAllocated) return;
         plan = value;
         Size = new(640, 480);
-        Title = "处理品质冲突";
         Open();
     }
 

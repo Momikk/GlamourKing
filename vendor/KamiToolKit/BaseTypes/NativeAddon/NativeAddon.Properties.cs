@@ -28,7 +28,9 @@ public unsafe partial class NativeAddon
         set
         {
             field = value;
-            WindowNode?.SetTitle(value.ToString(), Subtitle?.ToString() ?? KamiToolKitLibrary.DefaultWindowSubtitle);
+            // Title values survive Close(); native child nodes do not.
+            if (InternalAddon is not null && !isFinalized)
+                WindowNode?.SetTitle(value.ToString(), Subtitle?.ToString() ?? KamiToolKitLibrary.DefaultWindowSubtitle);
         }
     }
 
@@ -45,7 +47,8 @@ public unsafe partial class NativeAddon
         set
         {
             field = value;
-            WindowNode?.SetTitle(Title.ToString(), value?.ToString() ?? KamiToolKitLibrary.DefaultWindowSubtitle);
+            if (InternalAddon is not null && !isFinalized)
+                WindowNode?.SetTitle(Title.ToString(), value?.ToString() ?? KamiToolKitLibrary.DefaultWindowSubtitle);
         }
     }
 
