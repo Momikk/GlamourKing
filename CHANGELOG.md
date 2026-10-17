@@ -1,5 +1,13 @@
 # 更新记录
 
+## 0.1.0.19 — 2026-10-17
+
+· 新增“建立套装”按钮，为未建立装备创建套装，支持中途停止。
+
+### English
+
+· Add a stoppable Create Outfit button for equipment without an existing outfit.
+
 ## 0.1.0.18 — 2026-10-17
 
 · 修复 HQ/NQ 不一致的装备被误判为可补齐。<br>

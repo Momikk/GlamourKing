@@ -33,6 +33,8 @@ internal sealed unsafe class OutfitAutoCompleter(Plugin plugin)
     internal bool IsRunning => phase != Phase.Idle;
     internal string Status { get; private set; } = "";
 
+    internal void ClearStatus() { if (!IsRunning) Status = ""; }
+
     internal void Toggle()
     {
         try { ToggleCore(); }
@@ -46,6 +48,8 @@ internal sealed unsafe class OutfitAutoCompleter(Plugin plugin)
 
     private void ToggleCore()
     {
+        plugin.Creation.ClearStatus();
+        if (plugin.Creation.IsRunning) { Status = "请先停止建立套装。"; return; }
         plugin.Quality.ClearStatus();
         if (plugin.Quality.IsRunning) { Status = "请先停止品质冲突处理。"; return; }
         if (IsRunning) { Stop("已停止；已提交的操作仍可能完成。"); return; }

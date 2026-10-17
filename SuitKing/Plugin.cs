@@ -36,6 +36,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
     internal OutfitAutoCompleter Completion { get; }
     internal CabinetAutoStore CabinetStore { get; }
     internal QualityNormalizer Quality { get; }
+    internal OutfitCreator Creation { get; }
     internal QualityPreviewWindow QualityPreview { get; private set; } = null!;
     public bool IsCabinetOpen { get; private set; }
     public bool IsCabinetStoreOpen => IsCabinetOpen && IsVisible("Cabinet");
@@ -47,6 +48,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
         Completion = new OutfitAutoCompleter(this);
         CabinetStore = new CabinetAutoStore(this);
         Quality = new QualityNormalizer(this);
+        Creation = new OutfitCreator(this);
         highlighter = new NativeEquipmentHighlighter(this);
     }
 
@@ -80,6 +82,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
             if (Completion.IsRunning) Completion.Stop("插件已禁用。");
             if (CabinetStore.IsRunning) CabinetStore.Stop("插件已禁用。");
             if (Quality.IsRunning) Quality.Stop("插件已禁用。");
+            if (Creation.IsRunning) Creation.Stop("插件已禁用。");
             highlighter.Dispose();
             Framework.Update -= OnFrameworkUpdate;
             PluginInterface.UiBuilder.OpenMainUi -= OpenMainUi;
@@ -121,6 +124,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
             if (Completion.IsRunning) Completion.Stop("收纳界面已切换。");
             if (CabinetStore.IsRunning) CabinetStore.Stop("收纳界面已切换。");
             if (Quality.IsRunning) Quality.Stop("收纳界面已切换。");
+            if (Creation.IsRunning) Creation.Stop("收纳界面已切换。");
             QualityPreview.Close();
             if (open || cabinetOpen) mainWindow.OpenOnCompletable();
             else
@@ -141,6 +145,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
         Completion.Tick();
         CabinetStore.Tick();
         Quality.Tick();
+        Creation.Tick();
         if (!(open || cabinetOpen) || Environment.TickCount64 < nextScan)
             return;
         nextScan = Environment.TickCount64 + 1000;

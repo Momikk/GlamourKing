@@ -24,7 +24,7 @@ internal sealed unsafe class CabinetAutoStore(Plugin plugin)
         if (IsRunning) { Stop("已停止，已发送的收纳仍可能完成。"); return; }
         try
         {
-            if (!plugin.IsCabinetStoreOpen || plugin.Completion.IsRunning || plugin.Quality.IsRunning)
+            if (!plugin.IsCabinetStoreOpen || plugin.Completion.IsRunning || plugin.Quality.IsRunning || plugin.Creation.IsRunning)
             { Status = "请先打开收藏柜的存入界面。"; return; }
             plugin.Inventory.Refresh(false);
             if (!plugin.Inventory.IsComplete || !plugin.Inventory.IsCabinetLoaded)

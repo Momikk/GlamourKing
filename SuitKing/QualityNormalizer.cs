@@ -27,6 +27,8 @@ internal sealed unsafe class QualityNormalizer(Plugin plugin)
     internal void OpenPreview()
     {
         if (IsRunning) { Stop("已停止。"); return; }
+        if (plugin.Creation.IsRunning) { Status = "请先停止建立套装。"; return; }
+        plugin.Creation.ClearStatus();
         if (plugin.QualityPreview.IsAllocated) return;
         try
         {
@@ -85,7 +87,7 @@ internal sealed unsafe class QualityNormalizer(Plugin plugin)
     {
         if (!plugin.IsDresserOpen || plugin.IsCabinetOpen || Plugin.Player.ContentId == 0)
             throw new InvalidOperationException("请保持投影台主窗口打开。");
-        if (plugin.Completion.IsRunning || plugin.CabinetStore.IsRunning)
+        if (plugin.Completion.IsRunning || plugin.CabinetStore.IsRunning || plugin.Creation.IsRunning)
             throw new InvalidOperationException("请先停止其他收纳操作。");
         foreach (var name in new[] { "MiragePrismPrismSetConvert", "MiragePrismPrismSetConvertC", "SelectYesno" })
             if (Visible(name)) throw new InvalidOperationException("请先关闭已有的幻影化或确认窗口。");

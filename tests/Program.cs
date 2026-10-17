@@ -210,6 +210,39 @@ Check(!Lower(name:"另一件装备") && !Lower(name:""), "Wrong or absent item n
 Check(!QualityNormalizationPolicy.CanConfirmLower(true,129,129,lowerKey with {HighQuality=false},0,10,true,false,lowerPrompt,"朴素寝室打底裤"),
     "An NQ source is never submitted to irreversible HQ lowering");
 
+var newShoe = nqShoe with { Assessment = new(OutfitStorageState.NotCreated, "") };
+var newPants = newShoe with { ItemId = 40406, Name = "朴素寝室打底裤", Location = "物品栏 1", Slot = 1 };
+var newPlans = NewOutfitPlan.Build([newShoe], SleepFind);
+Check(newPlans.Count == 1 && newPlans[0].Items.Count == 1 && newPlans[0].RawId == 45518,
+    "A single available piece can establish a partial outfit");
+Check(NewOutfitPlan.Build([newShoe,newPants],SleepFind).Single().Items.Count == 2,
+    "Same-quality pieces across inventory and armory are submitted together");
+Check(NewOutfitPlan.Build([newShoe with {HighQuality=true},newPants with {HighQuality=true}],SleepFind).Single().RawId == 1045518,
+    "HQ outfit creation preserves HQ instead of silently lowering quality");
+var mixedPlans = NewOutfitPlan.Build([newShoe with {HighQuality=true},newPants],SleepFind);
+Check(mixedPlans.Count == 1 && !mixedPlans[0].HighQuality && mixedPlans[0].Items.Single() == newPants,
+    "One outfit never mixes HQ and NQ or schedules duplicate qualities; NQ is preferred");
+Check(NewOutfitPlan.Build([newShoe,newShoe with {Slot=8}],SleepFind).Single().Items.Count == 1,
+    "Only one physical copy is selected for each outfit slot");
+Check(NewOutfitPlan.Build([newShoe with {Condition=29999}],SleepFind).Count == 0,
+    "Damaged gear is excluded before new outfit creation");
+Check(NewOutfitPlan.Build([newShoe with {RegisteredToGearset=null}],SleepFind).Count == 0,
+    "Unknown gearset registration cannot authorize outfit creation");
+Check(NewOutfitPlan.Build(OutfitDisplayFilter.Apply([newShoe with {RegisteredToGearset=true}],true,""),SleepFind).Count == 0,
+    "New outfit creation honors the same saved-gearset display filter");
+Check(NewOutfitPlan.Build(OutfitDisplayFilter.Apply([newShoe with {RegisteredToGearset=true}],false,""),SleepFind).Count == 1,
+    "Turning off the display filter intentionally exposes registered creation candidates");
+foreach (var state in new[]{OutfitStorageState.Saved,OutfitStorageState.CanComplete,OutfitStorageState.QualityConflict,OutfitStorageState.CanStoreCabinet,OutfitStorageState.Unknown})
+    Check(NewOutfitPlan.Build([newShoe with {Assessment=new(state,"")}],SleepFind).Count==0,
+        $"{state} cannot be consumed by the create-outfit button");
+Check(NewOutfitPlan.Build([newShoe],_=>null).Count==0, "Unmapped items cannot create an outfit");
+Check(NewOutfitPlan.Build([newShoe],_=>new("bad","bad",[new(1,"bad",[40407])])).Count==0,
+    "Malformed slot mappings cannot create a native submission");
+var sharedSet = new OutfitDefinition(45519,"另一套装",[0,0,0,40405,0,0,40407,0,0,0,0]);
+OutfitInfo? SharedFind(uint id) => new("shared","sets",[sleepSet,sharedSet]);
+var splitPlans = NewOutfitPlan.Build([newShoe,newPants,newShoe with {ItemId=40405,Slot=9}],SharedFind);
+Check(splitPlans.SelectMany(plan=>plan.Items).Distinct().Count()==splitPlans.Sum(plan=>plan.Items.Count),
+    "Overlapping outfit memberships never reuse a physical source across planned sets");
 if (args.Length == 0) return;
 using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
 var nativePrompts = game.Excel.GetSheet<Addon>(Lumina.Data.Language.ChineseSimplified)
