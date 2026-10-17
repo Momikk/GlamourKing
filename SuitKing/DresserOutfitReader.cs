@@ -29,7 +29,7 @@ internal static class DresserOutfitReader
                 if (slots[slot] != 0 && manager->IsSetSlotUnlocked((uint)index, slot))
                     pieces.Add(slots[slot]);
             }
-            result.Add(new(id, pieces));
+            result.Add(new(id, pieces, rawId >= 1_000_000, index));
         }
         return manager->PrismBoxLoaded ? result : null;
     }

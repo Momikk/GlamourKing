@@ -46,6 +46,8 @@ internal sealed unsafe class OutfitAutoCompleter(Plugin plugin)
 
     private void ToggleCore()
     {
+        plugin.Quality.ClearStatus();
+        if (plugin.Quality.IsRunning) { Status = "请先停止品质冲突处理。"; return; }
         if (IsRunning) { Stop("已停止；已提交的操作仍可能完成。"); return; }
         if (!plugin.IsDresserOpen || Plugin.Player.ContentId == 0)
         { Status = "请先打开投影台。"; return; }
@@ -218,6 +220,8 @@ internal sealed unsafe class OutfitAutoCompleter(Plugin plugin)
             || data->SelectedSetIndex >= data->ItemSetCount || data->NumItemsInSet == 0 || data->NumItemsInSet > 9)
             throw new InvalidOperationException("套装数据结构异常。");
         prismBoxIndex = data->PrismBoxIndex;
+        if ((manager->PrismBoxItemIds[(int)prismBoxIndex] >= 1_000_000) != source.HighQuality)
+            throw new InvalidOperationException("装备与已有套装品质不一致，未提交。");
         outfitId = manager->PrismBoxItemIds[(int)prismBoxIndex] % 1_000_000;
         if (data->ItemSets[(int)data->SelectedSetIndex].ItemId != outfitId
             || !Plugin.Data.GetExcelSheet<MirageStoreSetItem>().TryGetRow(outfitId, out var set))
@@ -278,7 +282,7 @@ internal sealed unsafe class OutfitAutoCompleter(Plugin plugin)
             && (nint)callback.EventInterface == (nint)agent;
         if ((!callbackOwned && data->ConfirmationAddonId != confirm->Id)
             || !data->StoreInExistingOutfit || data->PrismBoxIndex != prismBoxIndex
-            || manager->PrismBoxItemIds[(int)prismBoxIndex] % 1_000_000 != outfitId
+            || manager->PrismBoxItemIds[(int)prismBoxIndex] != outfitId + (source.HighQuality ? 1_000_000u : 0u)
             || submitted.Count == 0 || submitted.Any(item => !IsCurrentEligible(item.Key)
                 || manager->IsSetSlotUnlocked(prismBoxIndex, item.OutfitSlot)))
         { Stop("最终收纳确认不属于当前补齐装备或套装，未确认。"); return; }
@@ -307,7 +311,7 @@ internal sealed unsafe class OutfitAutoCompleter(Plugin plugin)
     }
     private void WaitForResult(MirageManager* manager)
     {
-        if (manager->PrismBoxItemIds[(int)prismBoxIndex] % 1_000_000 != outfitId)
+        if (manager->PrismBoxItemIds[(int)prismBoxIndex] != outfitId + (source.HighQuality ? 1_000_000u : 0u))
         { Stop("目标套装记录已改变。"); return; }
         if (submitted.Any(item => !manager->IsSetSlotUnlocked(prismBoxIndex, item.OutfitSlot)
             || ReadKey((InventoryType)item.Key.Container, item.Key.Slot) == item.Key)) return;
@@ -352,7 +356,7 @@ internal sealed unsafe class OutfitAutoCompleter(Plugin plugin)
         return !handle.IsNull && handle.IsReady && handle.IsVisible ? (AtkUnitBase*)handle.Address : null;
     }
 
-    private static bool ClickButton(AtkUnitBase* addon, AtkComponentButton* button)
+    internal static bool ClickButton(AtkUnitBase* addon, AtkComponentButton* button)
     {
         if (button == null || !button->IsEnabled || button->OwnerNode == null || !button->AtkResNode->IsVisible()) return false;
         // Use the real registered event, not a guessed FireCallback argument or a signature hook.

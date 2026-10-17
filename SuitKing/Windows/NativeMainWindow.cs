@@ -10,6 +10,7 @@ internal sealed unsafe class NativeMainWindow(Plugin plugin) : NativeAddon
 {
     private CheckboxNode? hideCheckbox;
     private TextButtonNode? completeButton;
+    private TextButtonNode? qualityButton;
     private string lastCompletionStatus = "";
     private TabBarNode? tabs;
     private ListNode<NativeEquipmentRow, NativeEquipmentRowNode>? list;
@@ -25,7 +26,7 @@ internal sealed unsafe class NativeMainWindow(Plugin plugin) : NativeAddon
     private bool dirty = true;
     private static readonly (string Label, OutfitStorageState? State)[] Categories =
     [ ("全部", null), ("已保存", OutfitStorageState.Saved), ("可补齐", OutfitStorageState.CanComplete),
-      ("未建立", OutfitStorageState.NotCreated), ("收藏柜", OutfitStorageState.CanStoreCabinet), ("待确认", OutfitStorageState.Unknown) ];
+      ("品质冲突", OutfitStorageState.QualityConflict), ("未建立", OutfitStorageState.NotCreated), ("收藏柜", OutfitStorageState.CanStoreCabinet), ("待确认", OutfitStorageState.Unknown) ];
 
     internal void OpenOnCompletable()
     {
@@ -72,6 +73,10 @@ internal sealed unsafe class NativeMainWindow(Plugin plugin) : NativeAddon
             OnClick = () => { if (plugin.IsCabinetOpen) plugin.CabinetStore.Toggle(); else plugin.Completion.Toggle(); },
         };
         AddNode(completeButton);
+        qualityButton = new TextButtonNode { String = "冲突转 NQ", Position = origin + new Vector2(294, -2), Size = new(112, 28),
+            TextTooltip = "逐套预览：取出冲突的 HQ 部件，永久降为 NQ，再与待补齐部件一起存回。",
+            OnClick = () => plugin.Quality.OpenPreview() };
+        AddNode(qualityButton);
         cabinetHint = new TextNode { Position = origin + new Vector2(294, 0), Size = new Vector2(width - 294, 24), FontSize = 12, AlignmentType = AlignmentType.Left };
         AddNode(cabinetHint);
         tabs = new TabBarNode { Position = origin + new Vector2(0, 29), Size = new Vector2(width, 28) };
@@ -125,24 +130,28 @@ internal sealed unsafe class NativeMainWindow(Plugin plugin) : NativeAddon
     {
         if (!IsOpen || list is null) return;
         var cabinet = plugin.IsCabinetOpen;
-        var running = plugin.Completion.IsRunning || plugin.CabinetStore.IsRunning;
+        var running = plugin.Completion.IsRunning || plugin.CabinetStore.IsRunning || plugin.Quality.IsRunning;
         if (completeButton is not null)
         {
             completeButton.String = cabinet ? (plugin.CabinetStore.IsRunning ? "停止收纳" : "一键存入收藏柜")
                 : (plugin.Completion.IsRunning ? "停止补齐" : "自动补齐");
             completeButton.TextTooltip = cabinet ? "存入尚未收录的装备；忽略穿戴、职业配装及重复副本。再次点击可停止。"
                 : "将未被过滤的可补齐装备加入已有套装，消耗幻象棱晶。再次点击可停止。";
-            completeButton.IsEnabled = running || (plugin.Inventory.IsComplete && (cabinet ? plugin.IsCabinetStoreOpen && plugin.Inventory.IsCabinetLoaded : plugin.IsDresserOpen && plugin.Inventory.AreOutfitsLoaded));
+            completeButton.IsEnabled = !plugin.Quality.IsRunning && (running || (plugin.Inventory.IsComplete && (cabinet ? plugin.IsCabinetStoreOpen && plugin.Inventory.IsCabinetLoaded : plugin.IsDresserOpen && plugin.Inventory.AreOutfitsLoaded)));
             hideCheckbox!.IsVisible = !cabinet;
             hideCheckbox.IsEnabled = !running;
             tabs!.IsVisible = !cabinet;
+            qualityButton!.IsVisible = !cabinet;
+            qualityButton.String = plugin.Quality.IsRunning ? "停止转 NQ" : "冲突转 NQ";
+            qualityButton.IsEnabled = plugin.Quality.IsRunning || (!running && plugin.IsDresserOpen && Ready);
         }
         if (dirty || lastCabinetMode != cabinet || lastCompletionStatus != CurrentStatus || !ReferenceEquals(lastEquipment, plugin.Inventory.Equipment)
             || lastHide != plugin.Config.HideGearsetItems || lastReady != Ready)
             RefreshContents();
     }
 
-    private string CurrentStatus => plugin.IsCabinetOpen ? plugin.CabinetStore.Status : plugin.Completion.Status;
+    private string CurrentStatus => plugin.IsCabinetOpen ? plugin.CabinetStore.Status
+        : plugin.Quality.IsRunning || !string.IsNullOrEmpty(plugin.Quality.Status) ? plugin.Quality.Status : plugin.Completion.Status;
     private bool Ready => plugin.Inventory.IsComplete && (plugin.IsCabinetOpen ? plugin.Inventory.IsCabinetLoaded : plugin.Inventory.AreOutfitsLoaded);
 
     private void RefreshContents()
@@ -158,8 +167,8 @@ internal sealed unsafe class NativeMainWindow(Plugin plugin) : NativeAddon
         if (cabinetHint is not null)
         {
             var count = inventory.CabinetEquipment.Count;
-            cabinetHint.Position = ContentStartPosition + new Vector2(cabinet ? 0 : 294, 0);
-            cabinetHint.Width = cabinet ? 166 : ContentSize.X - 294;
+            cabinetHint.Position = ContentStartPosition + new Vector2(cabinet ? 0 : 416, 0);
+            cabinetHint.Width = cabinet ? 166 : ContentSize.X - 416;
             cabinetHint.String = cabinet ? "忽略穿戴及职业配装" : count > 0 ? $"请先去处理收藏柜（{count} 件）"
                 : !inventory.IsCabinetLoaded ? "请先打开收藏柜确认收录状态" : "";
         }
@@ -211,6 +220,9 @@ internal sealed unsafe class NativeMainWindow(Plugin plugin) : NativeAddon
         // Detach owned children before the game's finalizer; never keep native pointers across reopening.
         if (plugin.Completion.IsRunning) plugin.Completion.Stop("套装之王窗口已关闭。");
         if (plugin.CabinetStore.IsRunning) plugin.CabinetStore.Stop("套装之王窗口已关闭。");
+        if (plugin.Quality.IsRunning) plugin.Quality.Stop("套装之王窗口已关闭。");
+        plugin.QualityPreview.Close();
+        qualityButton?.Dispose(); qualityButton = null;
         cabinetHint?.Dispose();
         cabinetHint = null;
         completeButton?.Dispose();

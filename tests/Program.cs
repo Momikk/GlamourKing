@@ -156,6 +156,60 @@ Check(CabinetPolicy.Candidates([cabinetHead with { InCabinet = true }, cabinetFe
     "Collected and unknown cabinet records are never submitted from stale candidate labels");
 Check(CabinetPolicy.Candidates([cabinetHead with { CabinetId = null }]).Count == 0,
     "Candidate selection requires an actual Cabinet row mapping");
+// Quality identity and normalization use the user's NQ shoe / HQ partial-outfit case.
+var sleepSet = new OutfitDefinition(45518, "朴素寝室套装", [0,0,40404,40405,0,40406,40407,0,0,0,0]);
+var sleepHq = new StoredOutfit(45518, new HashSet<uint> {40406}, true, 210);
+Check(OutfitStateEvaluator.Evaluate(40407, [sleepSet], [sleepHq]).State == OutfitStorageState.QualityConflict,
+    "NQ shoes cannot fill an HQ outfit missing those shoes");
+Check(OutfitStateEvaluator.Evaluate(40407, [sleepSet], [sleepHq], true).State == OutfitStorageState.CanComplete,
+    "Matching HQ shoes can fill the existing HQ outfit");
+Check(OutfitStateEvaluator.Evaluate(40406, [sleepSet], [sleepHq]).State == OutfitStorageState.Saved,
+    "Appearance already in an opposite-quality outfit remains saved");
+Check(OutfitStateEvaluator.Evaluate(40407, [sleepSet], [sleepHq with { HighQuality = false }], true).State == OutfitStorageState.QualityConflict,
+    "HQ-to-NQ mismatch is also excluded from normal auto completion");
+Check(OutfitStateEvaluator.Evaluate(40407, [sleepSet,new OutfitDefinition(999,"其他套装",[40407])],
+    [sleepHq,new StoredOutfit(999,new HashSet<uint>{40407})]).State == OutfitStorageState.QualityConflict,
+    "An unresolved quality conflict remains visible even if another outfit already has the appearance");
+var nqShoe = new OutfitEquipment(40407, "朴素寝室拖鞋", false, "兵装库·脚部", 3, 30000, sleepSet.Name,
+    false, new(OutfitStorageState.QualityConflict, ""));
+OutfitInfo? SleepFind(uint id) => sleepSet.Pieces.Contains(id) ? new("寝室装备",sleepSet.Name,[sleepSet]) : null;
+var normalize = QualityNormalizationPlan.First([nqShoe], [sleepHq], SleepFind);
+Check(normalize != null && normalize.RawStoredId == 1045518, "Normalization preserves the exact HQ storage identity");
+Check(normalize!.RestoreMask == 1 << 5, "Only the saved pants slot is restored; empty slots are not requested");
+Check(normalize.PrismCount == 2 && normalize.Additional.Single() == nqShoe,
+    "Preview includes restored HQ pants and the authorized NQ shoes, costing two prisms");
+Check(QualityNormalizationPlan.First([nqShoe with { RegisteredToGearset = true }], [sleepHq], SleepFind) == null,
+    "Registered NQ gear cannot enter a quality normalization plan");
+Check(QualityNormalizationPlan.First([nqShoe with { RegisteredToGearset = null }], [sleepHq], SleepFind) == null,
+    "Pending registration cannot enter a normalization plan");
+Check(QualityNormalizationPlan.First([nqShoe with { Condition = 29999 }], [sleepHq], SleepFind) == null,
+    "Damaged NQ input does not cause HQ gear to be taken out");
+Check(QualityNormalizationPlan.First([nqShoe], [sleepHq, sleepHq with { HighQuality = false }], SleepFind) == null,
+    "Mixed or duplicate outfit records require manual review");
+Check(QualityNormalizationPlan.First([nqShoe], [sleepHq with { BoxIndex = -1 }], SleepFind) == null,
+    "Missing source dresser index cannot authorize restoration");
+Check(QualityNormalizationPlan.First([nqShoe], [sleepHq with { Pieces = new HashSet<uint>() }], SleepFind) == null,
+    "Empty saved outfits cannot create a restore request");
+Check(QualityNormalizationPlan.First([nqShoe,nqShoe with { Slot = 5 }], [sleepHq], SleepFind)!.Additional.Count == 1,
+    "Only one exact physical NQ source is planned per outfit slot");
+Check(QualityNormalizationPlan.First([nqShoe], [sleepHq with { BoxIndex = 800 }], SleepFind) == null,
+    "Out-of-range dresser source cannot create a restore request");
+Check(QualityNormalizationPlan.First([nqShoe], [sleepHq with { Pieces = new HashSet<uint>{99999} }], SleepFind) == null,
+    "Unmapped saved pieces cannot be taken out by a partial restore mask");
+var lowerKey = new CompletionItemKey(40406, 0, 10, true);
+const string lowerPrompt = "确定要降低朴素寝室打底裤的品质变换成以下道具吗？";
+bool Lower(bool owned=true,uint addon=129,uint blocker=129,uint container=0,int slot=10,bool valid=true,bool protect=false,string prompt=lowerPrompt,string name="朴素寝室打底裤")
+    => QualityNormalizationPolicy.CanConfirmLower(owned,addon,blocker,lowerKey,container,slot,valid,protect,prompt,name);
+Check(Lower(), "Owned native lower-quality prompt matches blocker, item name and physical slot");
+Check(!Lower(owned:false), "Foreign callback handler blocks irreversible quality confirmation");
+Check(!Lower(blocker:130) && !Lower(addon:0), "Only the exact blocking addon can lower quality");
+Check(!Lower(container:1) && !Lower(slot:11), "Moved or different source slots cannot be lowered");
+Check(!Lower(valid:false) && !Lower(protect:true), "Changed or newly protected source blocks quality lowering");
+Check(!Lower(prompt:"要丢弃朴素寝室打底裤吗？"), "Discard prompt can never be accepted as quality lowering");
+Check(!Lower(name:"另一件装备") && !Lower(name:""), "Wrong or absent item name cannot authorize lower quality");
+Check(!QualityNormalizationPolicy.CanConfirmLower(true,129,129,lowerKey with {HighQuality=false},0,10,true,false,lowerPrompt,"朴素寝室打底裤"),
+    "An NQ source is never submitted to irreversible HQ lowering");
+
 if (args.Length == 0) return;
 using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
 var nativePrompts = game.Excel.GetSheet<Addon>(Lumina.Data.Language.ChineseSimplified)
@@ -201,3 +255,8 @@ Check(cabinetRows.All(row => row.Item.IsValid), "Cabinet item references are val
 Check(cabinetRows.Any(row => row.RowId != row.Item.RowId), "Cabinet storage uses collection row ID, not equipment ID");
 Check(cabinetRows.Any(row => row.Item.Value.Icon > 0 && OutfitCatalog.GetPart(row.Item.Value) != "其他"),
     "CN cabinet equipment resolves native icons and equipment parts");
+
+var liveSleep = items.First(row => row.Name.ExtractText() == "朴素寝室拖鞋");
+Check(liveCatalog.Get(liveSleep.RowId)?.Sets?.Any(set => set.Id == 45518 && set.Pieces[5] == 40406 && set.Pieces[6] == 40407) == true,
+    "Actual CN sleepwear mapping preserves the pants and shoes restore-bit positions");
+Check(items.GetRow(QualityNormalizationPolicy.GlamourPrismId).Name.ExtractText() == "幻象棱晶", "Quality normalization prism ID matches the local CN resource");

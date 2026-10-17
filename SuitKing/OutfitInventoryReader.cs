@@ -30,6 +30,7 @@ internal sealed class OutfitInventoryReader
     private OutfitCatalog? catalog;
     private Dictionary<uint, uint>? cabinetIds;
     private IReadOnlyList<InventoryEntry> cabinetCopies = [];
+    internal OutfitInfo? FindOutfit(uint itemId) => catalog?.Get(itemId);
     public bool IsCabinetLoaded { get; private set; }
     public int CountCabinetCopies(uint itemId) => cabinetCopies.Count(item => item.ItemId == itemId);
     public IReadOnlyList<OutfitEquipment> CabinetEquipment => CabinetPolicy.Candidates(Equipment);
@@ -143,7 +144,7 @@ internal sealed class OutfitInventoryReader
         {
             uint? cabinetId = cabinetIds.TryGetValue(item.ItemId, out var rowId) ? rowId : null;
             bool? inCabinet = collected is null ? null : cabinetId.HasValue && collected.Contains(cabinetId.Value);
-            var assessment = OutfitStateEvaluator.Evaluate(item.ItemId, catalog.Get(item.ItemId)?.Sets, stored);
+            var assessment = OutfitStateEvaluator.Evaluate(item.ItemId, catalog.Get(item.ItemId)?.Sets, stored, item.HighQuality);
             return item with
             {
                 CabinetId = cabinetId, InCabinet = inCabinet,

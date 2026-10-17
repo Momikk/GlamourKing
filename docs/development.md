@@ -73,3 +73,13 @@ OutfitAutoCompleter 只在用户点击后启动，Framework.Update 驱动 Next /
 验收需核对已收录/未收录、职业配装过滤关闭仍排除、穿戴、重复副本、损坏装备、存入/取出切换、停止与角色切换，并在单件成功后再验证连续存入。此版离线检查不代表实际收纳已通过。
 
 0.1.0.17 移除 AgentCabinet.OpenMode / Items / ItemCount 与 CabinetStore 数组作为启动前提。已显示的 Cabinet 窗口确定存入上下文，候选从完整库存与 Cabinet 表获取；原生 StoreCabinetItem 按 Cabinet 行 ID 提交，返回拒绝时停止并记录装备与源位置，不绕过游戏收纳条件。
+
+## 0.1.0.18 品质冲突与转 NQ
+
+StoredOutfit 保留 HQ 标志和投影台格子；Evaluate 按来源品质匹配。异品质套装缺部件时显示 QualityConflict，普通自动补齐不纳入该状态，并在提交/最终确认/结果校验中保留完整品质标识。缺少同品质保存机会时，已收录的同外观仍列已保存。
+
+“冲突转 NQ”每次预览并处理一个随身 NQ 部件与已有 HQ 套装的冲突。首次仅支持该方向；随身 HQ 部件与已有 NQ 套装冲突请手动处理。预览列出所有已存 HQ 部件、待加入的 NQ 部件、空位与棱晶需求，用户确认后才修改。恢复位掩码仅包含有效且已解锁的部位。恢复前核对原记录、完整库存、职业配装、既有 HQ 副本、物品栏空位与棱晶（Item 21800），记录原库存来源集合。
+
+控制器按 RestoreWait / Lower / LowerConfirm / LowerWait / Store / StoreWait 串行运行。RestorePrismBoxSetItem 后等待 HQ 原记录消失且恰好识别所有新增 HQ 部件。LowerItemQuality 针对新增来源的确切容器与格子；只接受 InventoryContext 回调归属、BlockingAddonId 和 BlockedInventoryId/Slot 一致且含该装备名称的降低品质提示。国服正常 HQ 提示 DialogType 为 0，不能套用结构注释中“2=LowerQuality”的猜测。确认后等待同格变为 NQ 和原对话框关闭，逐件处理。
+
+最终 StoreNewOutfit 仅提交本次取出的已降 NQ 部件与预览授权的 NQ 缺件，填充 11 部位容器/格子数组，验证全为 NQ、满耐久、未登记职业配装且无新增冲突记录，并复查棱晶。只有服务端 NQ 套装对应部件解锁且来源移出才报告完成。每阶段超时 15 秒，先切等待状态再发送，停止不重试、不自动回滚不可恢复的品质；已取出/降低的装备留在物品栏。关闭界面、角色变化、来源变化或异常确认窗均停止。

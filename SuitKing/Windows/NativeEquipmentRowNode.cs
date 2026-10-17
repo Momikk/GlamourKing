@@ -87,13 +87,13 @@ internal sealed class NativeEquipmentRowNode : ListItemNode<NativeEquipmentRow>,
         cells[3].String = state switch
         {
             OutfitStorageState.Saved => "已保存", OutfitStorageState.CanComplete => "可补齐",
-            OutfitStorageState.CanStoreCabinet => "可存收藏柜", OutfitStorageState.NotCreated => "未建立", _ => "待确认",
+            OutfitStorageState.QualityConflict => "品质冲突", OutfitStorageState.CanStoreCabinet => "可存收藏柜", OutfitStorageState.NotCreated => "未建立", _ => "待确认",
         };
         // Use game theme colours so labels remain legible with the light and dark native skins.
         cells[3].TextColorID = state switch
         {
             OutfitStorageState.Saved => 43, OutfitStorageState.CanComplete => 31,
-            OutfitStorageState.CanStoreCabinet => 31, OutfitStorageState.NotCreated => 37, _ => 8,
+            OutfitStorageState.QualityConflict => 17, OutfitStorageState.CanStoreCabinet => 31, OutfitStorageState.NotCreated => 37, _ => 8,
         };
         TextTooltip = $"{item.Name}\n{item.SetNames}\n{item.Location} · 第 {item.Slot} 格 · {(item.HighQuality ? "HQ" : "NQ")}\n{item.Assessment?.Details ?? "等待套装数据。"}";
     }

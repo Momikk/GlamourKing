@@ -1,5 +1,15 @@
 # 更新记录
 
+## 0.1.0.18 — 2026-10-17
+
+· 修复 HQ/NQ 不一致的装备被误判为可补齐。<br>
+· 新增“冲突转 NQ”，确认后自动取出 HQ 部件、降品质并存回。
+
+### English
+
+· Fix HQ/NQ mismatches being marked as completable.<br>
+· Add a previewed HQ-to-NQ workflow that retrieves, lowers and restores conflicting outfit pieces.
+
 ## 0.1.0.17 — 2026-10-17
 
 · 修复已打开收藏柜仍提示切换存入界面、无法一键存入的问题。

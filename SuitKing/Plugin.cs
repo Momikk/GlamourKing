@@ -35,6 +35,8 @@ public sealed class Plugin : IAsyncDalamudPlugin
     internal Configuration Config { get; }
     internal OutfitAutoCompleter Completion { get; }
     internal CabinetAutoStore CabinetStore { get; }
+    internal QualityNormalizer Quality { get; }
+    internal QualityPreviewWindow QualityPreview { get; private set; } = null!;
     public bool IsCabinetOpen { get; private set; }
     public bool IsCabinetStoreOpen => IsCabinetOpen && IsVisible("Cabinet");
     public bool IsDresserOpen { get; private set; }
@@ -44,6 +46,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
         Config = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Completion = new OutfitAutoCompleter(this);
         CabinetStore = new CabinetAutoStore(this);
+        Quality = new QualityNormalizer(this);
         highlighter = new NativeEquipmentHighlighter(this);
     }
 
@@ -57,6 +60,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
             {
                 InternalName = "SuitKingNative", Title = "套装之王 SuitKing", Size = new(760, 520),
             };
+            QualityPreview = new QualityPreviewWindow(this) { Title = "处理品质冲突", InternalName = "SuitKingQualityPreview" };
             CommandsAdd(CommandName);
             CommandsAdd("/sking");
             PluginInterface.UiBuilder.OpenMainUi += OpenMainUi;
@@ -75,6 +79,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
         {
             if (Completion.IsRunning) Completion.Stop("插件已禁用。");
             if (CabinetStore.IsRunning) CabinetStore.Stop("插件已禁用。");
+            if (Quality.IsRunning) Quality.Stop("插件已禁用。");
             highlighter.Dispose();
             Framework.Update -= OnFrameworkUpdate;
             PluginInterface.UiBuilder.OpenMainUi -= OpenMainUi;
@@ -82,6 +87,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
             CommandManager.RemoveHandler("/sking");
         });
         if (mainWindow is not null) await mainWindow.DisposeAsync();
+        if (QualityPreview is not null) await QualityPreview.DisposeAsync();
         await KamiToolKitLibrary.DisposeAsync();
         Inventory.Clear();
     }
@@ -114,6 +120,8 @@ public sealed class Plugin : IAsyncDalamudPlugin
             IsCabinetOpen = cabinetOpen;
             if (Completion.IsRunning) Completion.Stop("收纳界面已切换。");
             if (CabinetStore.IsRunning) CabinetStore.Stop("收纳界面已切换。");
+            if (Quality.IsRunning) Quality.Stop("收纳界面已切换。");
+            QualityPreview.Close();
             if (open || cabinetOpen) mainWindow.OpenOnCompletable();
             else
             {
@@ -132,6 +140,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
         mainWindow.TickPendingOpen();
         Completion.Tick();
         CabinetStore.Tick();
+        Quality.Tick();
         if (!(open || cabinetOpen) || Environment.TickCount64 < nextScan)
             return;
         nextScan = Environment.TickCount64 + 1000;
