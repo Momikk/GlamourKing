@@ -34,12 +34,16 @@ public sealed class Plugin : IAsyncDalamudPlugin
     internal OutfitInventoryReader Inventory { get; } = new();
     internal Configuration Config { get; }
     internal OutfitAutoCompleter Completion { get; }
+    internal CabinetAutoStore CabinetStore { get; }
+    public bool IsCabinetOpen { get; private set; }
+    public bool IsCabinetStoreOpen => IsCabinetOpen && IsVisible("Cabinet");
     public bool IsDresserOpen { get; private set; }
 
     public Plugin()
     {
         Config = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Completion = new OutfitAutoCompleter(this);
+        CabinetStore = new CabinetAutoStore(this);
         highlighter = new NativeEquipmentHighlighter(this);
     }
 
@@ -70,6 +74,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
         await Framework.Run(() =>
         {
             if (Completion.IsRunning) Completion.Stop("插件已禁用。");
+            if (CabinetStore.IsRunning) CabinetStore.Stop("插件已禁用。");
             highlighter.Dispose();
             Framework.Update -= OnFrameworkUpdate;
             PluginInterface.UiBuilder.OpenMainUi -= OpenMainUi;
@@ -96,15 +101,20 @@ public sealed class Plugin : IAsyncDalamudPlugin
             Inventory.Clear();
             nextScan = 0;
             IsDresserOpen = false;
+            IsCabinetOpen = false;
             selectionWasOpen = false;
             mainWindow.Close();
         }
         var selectionOpen = contentId != 0 && IsVisible(SelectionAddonName);
         var open = contentId != 0 && (IsVisible(DresserAddonName) || selectionOpen);
-        if (open != IsDresserOpen)
+        var cabinetOpen = contentId != 0 && (IsVisible("Cabinet") || IsVisible("CabinetWithdraw"));
+        if (open != IsDresserOpen || cabinetOpen != IsCabinetOpen)
         {
             IsDresserOpen = open;
-            if (open) mainWindow.OpenOnCompletable();
+            IsCabinetOpen = cabinetOpen;
+            if (Completion.IsRunning) Completion.Stop("收纳界面已切换。");
+            if (CabinetStore.IsRunning) CabinetStore.Stop("收纳界面已切换。");
+            if (open || cabinetOpen) mainWindow.OpenOnCompletable();
             else
             {
                 mainWindow.Close();
@@ -113,7 +123,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
             Inventory.Clear();
             nextScan = 0;
         }
-        if (selectionOpen && !selectionWasOpen)
+        if (selectionOpen && !selectionWasOpen && !cabinetOpen)
         {
             mainWindow.OpenOnCompletable();
             nextScan = 0;
@@ -121,12 +131,13 @@ public sealed class Plugin : IAsyncDalamudPlugin
         selectionWasOpen = selectionOpen;
         mainWindow.TickPendingOpen();
         Completion.Tick();
-        if (!open || Environment.TickCount64 < nextScan)
+        CabinetStore.Tick();
+        if (!(open || cabinetOpen) || Environment.TickCount64 < nextScan)
             return;
         nextScan = Environment.TickCount64 + 1000;
         try
         {
-            Inventory.Refresh();
+            Inventory.Refresh(!cabinetOpen);
             lastError = null;
         }
         catch (Exception exception)

@@ -1,6 +1,6 @@
 namespace SuitKing;
 
-internal enum OutfitStorageState { Unknown, Saved, CanComplete, NotCreated }
+internal enum OutfitStorageState { Unknown, Saved, CanComplete, NotCreated, CanStoreCabinet }
 internal sealed record OutfitDefinition(uint Id, string Name, IReadOnlyList<uint> Pieces);
 internal sealed record StoredOutfit(uint Id, IReadOnlySet<uint> Pieces);
 internal sealed record OutfitAssessment(OutfitStorageState State, string Details);
@@ -9,6 +9,7 @@ internal static class OutfitStateEvaluator
 {
     public static string Label(OutfitStorageState state) => state switch
     {
+        OutfitStorageState.CanStoreCabinet => "可存收藏柜",
         OutfitStorageState.Saved => "已保存相同套装",
         OutfitStorageState.CanComplete => "可补齐现有套装",
         OutfitStorageState.NotCreated => "尚未建立套装",

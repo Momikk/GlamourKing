@@ -1,5 +1,23 @@
 # 更新记录
 
+## 0.1.0.16 — 2026-10-17
+
+· 增加“可存收藏柜”状态与分类，自动补齐旁提示先处理收藏柜。<br>
+· 打开收藏柜自动显示待收纳装备，支持一键存入和中途停止。<br>
+· 收藏柜始终忽略穿戴与职业配装装备；重复副本和不满足原生条件的装备不自动存入。<br>
+· 收藏柜数据未加载时显示待确认，避免自动补齐提前消耗未收录装备。
+
+国服 API 15 编译及 88 项回归/国服数据检查通过；实际收藏柜显示与批量存入待游戏内验收。
+
+### English
+
+· Add a Cabinet category and “Can store in armoire” status, with a reminder beside Auto Complete.<br>
+· Open the pending-item list with the armoire and store items with one click; click again to stop.<br>
+· Always exclude equipped and saved gearset items; skip duplicate copies and items rejected by native requirements.<br>
+· Keep collection status unknown until armoire data loads, preventing premature outfit consumption.
+
+CN API 15 build and 88 regression/CN-data checks pass. In-game cabinet display and batch storage remain unverified.
+
 ## 0.1.0.15 — 2026-10-14
 
 文档更新 / Documentation update

@@ -2,7 +2,7 @@ namespace SuitKing;
 
 internal sealed record InventoryEntry(uint ItemId, bool HighQuality, string Location, int Slot, ushort Condition, bool? RegisteredToGearset = null);
 internal sealed record OutfitInfo(string ItemName, string SetNames, IReadOnlyList<OutfitDefinition>? Sets = null, uint IconId = 0, string Part = "其他");
-internal sealed record OutfitEquipment(uint ItemId, string Name, bool HighQuality, string Location, int Slot, ushort Condition, string SetNames, bool? RegisteredToGearset = null, OutfitAssessment? Assessment = null, uint IconId = 0, string Part = "其他");
+internal sealed record OutfitEquipment(uint ItemId, string Name, bool HighQuality, string Location, int Slot, ushort Condition, string SetNames, bool? RegisteredToGearset = null, OutfitAssessment? Assessment = null, uint IconId = 0, string Part = "其他", uint? CabinetId = null, bool? InCabinet = null);
 
 internal static class OutfitListBuilder
 {

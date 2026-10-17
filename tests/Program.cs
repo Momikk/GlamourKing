@@ -123,6 +123,29 @@ Check(!gearsetGate.IsStable(new HashSet<uint>()), "A transient empty registratio
 Check(!gearsetGate.IsStable(savedGearsetIds) && gearsetGate.IsStable(savedGearsetIds), "Transient refresh recovers directly to the stable filtered snapshot");
 gearsetGate.Clear();
 Check(!gearsetGate.IsStable(savedGearsetIds), "Character/session reset cannot reuse old registration readiness");
+var completable = new OutfitAssessment(OutfitStorageState.CanComplete, "existing outfit");
+Check(CabinetPolicy.Assess(completable, 7, false, false).State == OutfitStorageState.CanStoreCabinet,
+    "Uncollected cabinet piece takes priority over outfit completion");
+Check(CabinetPolicy.Assess(new(OutfitStorageState.Saved, ""), 7, false, false).State == OutfitStorageState.CanStoreCabinet,
+    "Cabinet eligibility is independent from already saved outfit pieces");
+Check(CabinetPolicy.Assess(completable, 7, true, false) == completable, "Collected cabinet piece keeps its outfit status");
+Check(CabinetPolicy.Assess(completable, null, false, false) == completable, "Ordinary outfit piece is not a cabinet candidate");
+Check(CabinetPolicy.Assess(completable, 7, null, false).State == OutfitStorageState.Unknown,
+    "Unloaded cabinet data cannot authorize outfit consumption");
+Check(CabinetPolicy.Assess(completable, 7, false, true) == completable,
+    "Registered job gear is never offered for cabinet storage");
+Check(CabinetPolicy.Assess(completable, 7, false, null) == completable,
+    "Unknown registration is never offered for cabinet storage");
+Check(CabinetPolicy.CanStore(7, false, false, 1, true), "One unprotected native-eligible copy can be stored");
+Check(!CabinetPolicy.CanStore(7, true, false, 1, true), "Already collected piece cannot be stored again");
+Check(!CabinetPolicy.CanStore(7, null, false, 1, true), "Unknown cabinet collection blocks storage");
+Check(!CabinetPolicy.CanStore(7, false, true, 1, true), "Job gear protection holds even with display filter disabled");
+Check(!CabinetPolicy.CanStore(7, false, null, 1, true), "Pending job gear registration blocks storage");
+Check(!CabinetPolicy.CanStore(7, false, false, 2, true), "Duplicate copies cannot be chosen by an ambiguous cabinet row request");
+Check(!CabinetPolicy.CanStore(7, false, false, 0, true), "Removed source copy cannot be submitted");
+Check(!CabinetPolicy.CanStore(7, false, false, 1, false), "Game-native rejection blocks storage");
+Check(!CabinetPolicy.CanStore(null, false, false, 1, true), "Missing cabinet row cannot authorize storage");
+Check(CabinetPolicy.CanStore(0, false, false, 1, true), "Cabinet collection row zero is a valid storage target");
 if (args.Length == 0) return;
 using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
 var nativePrompts = game.Excel.GetSheet<Addon>(Lumina.Data.Language.ChineseSimplified)
@@ -160,3 +183,11 @@ var scan = OutfitListBuilder.Build([new(marked.RowId, false, "兵装库·身体"
 Check(scan.Count == 1 && scan[0].ItemId == marked.RowId, "CN catalog integration selects only marked equipment");
 
 Check(liveCatalog.Get(marked.RowId)?.Part == "身体" && liveCatalog.Get(marked.RowId)?.IconId > 0, "Local CN item resolves equipment part and real icon" );
+
+var cabinetRows = game.Excel.GetSheet<Lumina.Excel.Sheets.Cabinet>().Where(row => row.Item.RowId != 0).ToArray();
+Check(cabinetRows.Length > 0, "CN Cabinet catalog contains real collection entries");
+Check(cabinetRows.Any(row => row.RowId == 0 && row.Item.IsValid), "CN collection row zero must not be treated as an absent entry");
+Check(cabinetRows.All(row => row.Item.IsValid), "Cabinet item references are valid");
+Check(cabinetRows.Any(row => row.RowId != row.Item.RowId), "Cabinet storage uses collection row ID, not equipment ID");
+Check(cabinetRows.Any(row => row.Item.Value.Icon > 0 && OutfitCatalog.GetPart(row.Item.Value) != "其他"),
+    "CN cabinet equipment resolves native icons and equipment parts");

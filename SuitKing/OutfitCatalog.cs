@@ -36,7 +36,7 @@ internal sealed class OutfitCatalog(ExcelSheet<MirageStoreSetItemLookup> lookup,
         cache[itemId] = info;
         return info;
     }
-    private static string GetPart(Item item)
+    internal static string GetPart(Item item)
     {
         if (!item.EquipSlotCategory.IsValid) return "其他";
         var slot = item.EquipSlotCategory.Value;

@@ -1,10 +1,10 @@
 <Project Sdk="Dalamud.NET.Sdk/15.0.0">
   <PropertyGroup>
-    <Version>0.1.0.15</Version>
+    <Version>0.1.0.16</Version>
     <Author>Momikk</Author>
     <Name>套装之王 SuitKing</Name>
     <Punchline>汇总物品栏和兵装库中支持套装幻影化的装备。</Punchline>
-    <Description>使用游戏原生 UI 汇总物品栏与兵装库中的套装幻影化装备，采用紧凑行距、左侧装备套装过滤和单击分类；默认打开可补齐，支持按钮批量补入已有套装，原生装备选择列表中可补齐名称标红。可通过 /suitking 或 /sking 打开。</Description>
+    <Description>使用游戏原生 UI 汇总物品栏与兵装库中的套装幻影化装备，采用紧凑行距、左侧装备套装过滤和单击分类；默认打开可补齐，支持按钮批量补入已有套装，原生装备选择列表中可补齐名称标红。增加收藏柜待收纳状态及一键存入，始终忽略穿戴和职业配装装备。可通过 /suitking 或 /sking 打开。</Description>
     <RepoUrl>https://github.com/Momikk/SuitKing</RepoUrl>
     <IconUrl>https://raw.githubusercontent.com/Momikk/SuitKing/main/images/icon.png</IconUrl>
     <Tags>glamour;dresser;outfit</Tags>

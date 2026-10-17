@@ -1,4 +1,6 @@
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using Lumina.Excel.Sheets;
 
@@ -26,6 +28,12 @@ internal sealed class OutfitInventoryReader
     }
     private readonly GearsetSnapshotGate gearsetGate = new();
     private OutfitCatalog? catalog;
+    private Dictionary<uint, uint>? cabinetIds;
+    private IReadOnlyList<InventoryEntry> cabinetCopies = [];
+    public bool IsCabinetLoaded { get; private set; }
+    public int CountCabinetCopies(uint itemId) => cabinetCopies.Count(item => item.ItemId == itemId);
+    public IReadOnlyList<OutfitEquipment> CabinetEquipment => Equipment.Where(item =>
+        item.Assessment?.State == OutfitStorageState.CanStoreCabinet && item.RegisteredToGearset == false).ToArray();
     public IReadOnlyList<OutfitEquipment> Equipment { get; private set; } = [];
     public string Status { get; private set; } = "打开投影台后读取物品栏和兵装库。";
     public bool IsComplete { get; private set; }
@@ -35,6 +43,8 @@ internal sealed class OutfitInventoryReader
     public void Clear()
     {
         gearsetGate.Clear();
+        cabinetCopies = [];
+        IsCabinetLoaded = false;
         Equipment = [];
         IsComplete = false;
         AreOutfitsLoaded = false;
@@ -49,7 +59,7 @@ internal sealed class OutfitInventoryReader
     }
 
     // Only called from Framework.Update. No pointer survives this call and no game memory is written.
-    public unsafe void Refresh()
+    public unsafe void Refresh(bool requireDresser = true)
     {
         var manager = InventoryManager.Instance();
         if (manager == null)
@@ -58,6 +68,19 @@ internal sealed class OutfitInventoryReader
             return;
         }
         catalog ??= new(Plugin.Data.GetExcelSheet<MirageStoreSetItemLookup>(), Plugin.Data.GetExcelSheet<Item>());
+        cabinetIds ??= Plugin.Data.GetExcelSheet<Lumina.Excel.Sheets.Cabinet>()
+            .Where(row => row.Item.RowId != 0).GroupBy(row => row.Item.RowId)
+            .ToDictionary(group => group.Key, group => group.First().RowId);
+        var ui = UIState.Instance();
+        IsCabinetLoaded = ui != null && ui->Cabinet.IsCabinetLoaded();
+        var collected = IsCabinetLoaded ? cabinetIds.Values.Where(id => ui->Cabinet.IsItemInCabinet(id)).ToHashSet() : null;
+        OutfitInfo? FindCandidate(uint id)
+        {
+            var outfit = catalog.Get(id);
+            if (outfit != null) return outfit;
+            if (!cabinetIds.ContainsKey(id) || !Plugin.Data.GetExcelSheet<Item>().TryGetRow(id, out var item)) return null;
+            return new(item.Name.ExtractText(), "—", [], item.Icon, OutfitCatalog.GetPart(item));
+        }
         var gearsets = RaptureGearsetModule.Instance();
         // Read saved gearset IDs once. Unlike per-item native lookup, this does not depend
         // on transient item-row/icon loading during dresser refreshes. HQ identities differ.
@@ -99,7 +122,7 @@ internal sealed class OutfitInventoryReader
                 // These real inventory containers should never contain symbolic proxy items.
                 if (item->IsSymbolic)
                     throw new InvalidOperationException($"{name}存在未预期的代理物品，已停止读取。");
-                if (item->ItemId == 0 || item->Quantity <= 0 || catalog.Get(item->ItemId) is null)
+                if (item->ItemId == 0 || item->Quantity <= 0 || FindCandidate(item->ItemId) is null)
                     continue;
                 entries.Add(new(item->ItemId,
                     (item->Flags & InventoryItem.ItemFlags.HighQuality) != 0, name, slot + 1, item->Condition,
@@ -111,15 +134,24 @@ internal sealed class OutfitInventoryReader
         var stored = DresserOutfitReader.Read();
         AreOutfitsLoaded = stored is not null;
         IsComplete = missing.Count == 0;
-        if (!IsComplete || !AreOutfitsLoaded)
+        if (!IsComplete || (requireDresser && !AreOutfitsLoaded) || !requireDresser && !IsCabinetLoaded)
         {
             Status = "等待物品、套装及过滤数据加载，保留上次完整结果。";
             return;
         }
-        Equipment = OutfitListBuilder.Build(entries, catalog.Get).Select(item => item with
+        cabinetCopies = entries.Where(item => cabinetIds.ContainsKey(item.ItemId)).ToArray();
+        Equipment = OutfitListBuilder.Build(entries, FindCandidate).Select(item =>
         {
-            Assessment = OutfitStateEvaluator.Evaluate(item.ItemId, catalog.Get(item.ItemId)?.Sets, stored),
-        }).ToArray();
+            uint? cabinetId = cabinetIds.TryGetValue(item.ItemId, out var rowId) ? rowId : null;
+            bool? inCabinet = collected is null ? null : cabinetId.HasValue && collected.Contains(cabinetId.Value);
+            var assessment = OutfitStateEvaluator.Evaluate(item.ItemId, catalog.Get(item.ItemId)?.Sets, stored);
+            return item with
+            {
+                CabinetId = cabinetId, InCabinet = inCabinet,
+                Assessment = CabinetPolicy.Assess(assessment, cabinetId, inCabinet, item.RegisteredToGearset),
+            };
+        }).Where(item => catalog.Get(item.ItemId) != null || item.RegisteredToGearset == false
+            && item.CabinetId.HasValue && item.InCabinet != true).ToArray();
         IsComplete = missing.Count == 0;
         UpdatedAt = DateTimeOffset.Now;
         Status = IsComplete
