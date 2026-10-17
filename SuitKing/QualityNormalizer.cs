@@ -9,7 +9,7 @@ namespace SuitKing;
 
 internal sealed unsafe class QualityNormalizer(Plugin plugin)
 {
-    private enum Phase { Idle, RestoreWait, Lower, LowerConfirm, LowerWait, Store, StoreWait }
+    private enum Phase { Idle, Restore, RestoreWait, Lower, LowerConfirm, LowerWait, Store, StoreWait }
     private Phase phase;
     private QualityNormalizationPlan? plan;
     private ulong characterId;
@@ -19,6 +19,7 @@ internal sealed unsafe class QualityNormalizer(Plugin plugin)
     private readonly HashSet<CompletionItemKey> baseline = [];
     private readonly List<CompletionItemKey> handIns = [];
     private int lowerIndex;
+    private bool restoreAccepted;
     internal bool IsRunning => phase != Phase.Idle;
     internal string Status { get; private set; } = "";
 
@@ -58,28 +59,21 @@ internal sealed unsafe class QualityNormalizer(Plugin plugin)
             plugin.Inventory.Refresh();
             if (!plugin.Inventory.IsComplete || !plugin.Inventory.AreOutfitsLoaded) throw new InvalidOperationException("数据刷新中，请重新预览。");
             Preflight(expected);
-            baseline.Clear();
-            foreach (var item in plugin.Inventory.Equipment) if (KeyOf(item) is { } key) baseline.Add(key);
-            restored.Clear(); handIns.Clear(); lowerIndex = 0;
-            foreach (var item in expected.Additional) handIns.Add(KeyOf(item)!.Value);
-            var manager = MirageManager.Instance();
-            byte* bits = stackalloc byte[2];
-            bits[0] = (byte)expected.RestoreMask; bits[1] = (byte)(expected.RestoreMask >> 8);
-            SetPhase(Phase.RestoreWait); // Latch before each server request; never retry a mutation.
-            Status = $"正在取出 HQ 部件：{expected.Definition.Name}";
-            if (!manager->RestorePrismBoxSetItem((uint)expected.Stored.BoxIndex, bits))
-                Stop("游戏拒绝取出，未降低品质。");
+            restoreAccepted = false;
+            SetPhase(Phase.Restore);
+            Status = "等待预览窗口关闭后取出 HQ 部件。";
         }
         catch (Exception error) { Stop(error.Message); Plugin.Log.Warning(error, "Quality normalization did not start"); }
     }
 
     internal void Stop(string reason)
     {
-        var changed = phase != Phase.Idle;
+        var changed = restoreAccepted;
         if (changed) Plugin.Log.Warning("Quality normalization stopped: {Reason}; restored or lowered gear remains in inventory.", reason);
         phase = Phase.Idle;
         Status = reason + (changed ? " 已取出或已降品质的装备留在物品栏，请检查后手动存回。" : "");
         plan = null;
+        restoreAccepted = false;
         plugin.RequestRefresh();
     }
 
@@ -89,7 +83,7 @@ internal sealed unsafe class QualityNormalizer(Plugin plugin)
             throw new InvalidOperationException("请保持投影台主窗口打开。");
         if (plugin.Completion.IsRunning || plugin.CabinetStore.IsRunning || plugin.Creation.IsRunning)
             throw new InvalidOperationException("请先停止其他收纳操作。");
-        foreach (var name in new[] { "MiragePrismPrismSetConvert", "MiragePrismPrismSetConvertC", "SelectYesno" })
+        foreach (var name in new[] { "MiragePrismPrismSetConvert", "MiragePrismPrismSetConvertC", "MiragePrismPrismSetRevert", "SelectYesno" })
             if (Visible(name)) throw new InvalidOperationException("请先关闭已有的幻影化或确认窗口。");
     }
 
@@ -97,7 +91,7 @@ internal sealed unsafe class QualityNormalizer(Plugin plugin)
     {
         var manager = MirageManager.Instance();
         var inventory = InventoryManager.Instance();
-        if (manager == null || !manager->PrismBoxLoaded || inventory == null || candidate.RestoreMask == 0
+        if (manager == null || !manager->PrismBoxRequested || !manager->PrismBoxLoaded || inventory == null || candidate.RestoreMask == 0
             || candidate.Stored.BoxIndex is < 0 or >= 800 || !candidate.Stored.HighQuality
             || candidate.PrismCount > OutfitSubmissionLayout.Capacity)
             throw new InvalidOperationException("套装数据未就绪，请重新预览。");
@@ -142,6 +136,33 @@ internal sealed unsafe class QualityNormalizer(Plugin plugin)
             if (phase != Phase.LowerConfirm && phase != Phase.LowerWait && Visible("SelectYesno")) { Stop("出现其他确认窗口，已停止。"); return; }
             switch (phase)
             {
+                case Phase.Restore:
+                    if (plugin.QualityPreview.IsAllocated) return;
+                    RequireContext();
+                    plugin.Inventory.Refresh();
+                    if (!plugin.Inventory.IsComplete || !plugin.Inventory.AreOutfitsLoaded) return;
+                    Preflight(plan);
+                    baseline.Clear();
+                    foreach (var item in plugin.Inventory.Equipment) if (KeyOf(item) is { } key) baseline.Add(key);
+                    restored.Clear(); handIns.Clear(); lowerIndex = 0;
+                    foreach (var item in plan.Additional) handIns.Add(KeyOf(item)!.Value);
+                    byte* bits = stackalloc byte[2];
+                    bits[0] = (byte)plan.RestoreMask; bits[1] = (byte)(plan.RestoreMask >> 8);
+                    Plugin.Log.Information("HQ restore native pointers: manager={Manager:X}, function={Function:X}.",
+                        (nint)manager, (nint)MirageManager.MemberFunctionPointers.RestorePrismBoxSetItem);
+                    Plugin.Log.Information("HQ restore request: outfit={Outfit}, index={Index}, mask={Mask:X4}, locked={Locked0:X2}/{Locked1:X2}, requested={Requested}, loaded={Loaded}, freeBagSlots={Free}.",
+                        plan.RawStoredId, plan.Stored.BoxIndex, plan.RestoreMask,
+                        manager->PrismBoxStain0Ids[plan.Stored.BoxIndex], manager->PrismBoxStain1Ids[plan.Stored.BoxIndex],
+                        manager->PrismBoxRequested, manager->PrismBoxLoaded, InventoryManager.Instance()->GetEmptySlotsInBag());
+                    SetPhase(Phase.RestoreWait); // Latch before the sole request; never retry a mutation.
+                    Status = $"正在取出 HQ 部件：{plan.Definition.Name}";
+                    restoreAccepted = manager->RestorePrismBoxSetItem((uint)plan.Stored.BoxIndex, bits);
+                    if (!restoreAccepted)
+                    {
+                        Plugin.Log.Warning("HQ restore request was rejected before submission.");
+                        Stop("游戏未接受取出请求，未取出、未降低品质。详情见 /xllog。");
+                    }
+                    break;
                 case Phase.RestoreWait:
                     plugin.Inventory.Refresh();
                     if (!plugin.Inventory.IsComplete || !plugin.Inventory.AreOutfitsLoaded) return;
@@ -189,6 +210,7 @@ internal sealed unsafe class QualityNormalizer(Plugin plugin)
                         if (handIns.Any(key => Matches(key) || !manager->IsSetSlotUnlocked((uint)index,
                             Array.IndexOf(plan.Definition.Pieces.ToArray(), key.ItemId)))) return;
                         phase = Phase.Idle;
+                        restoreAccepted = false;
                         Status = $"已转为 NQ 并存回：{plan.Definition.Name}，共 {handIns.Count} 件。";
                         plan = null; plugin.RequestRefresh(); return;
                     }

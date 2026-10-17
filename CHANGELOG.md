@@ -1,5 +1,13 @@
 # 更新记录
 
+## 0.1.0.21 — 2026-10-17
+
+· 调整冲突转 NQ 的取出时机，修正失败提示并增加诊断记录。
+
+### English
+
+· Adjust HQ-to-NQ retrieval timing, correct failure messages and add diagnostics.
+
 ## 0.1.0.20 — 2026-10-17
 
 · 修复“建立套装”及转 NQ 后存回没有实际存入的问题。
