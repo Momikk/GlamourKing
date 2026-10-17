@@ -87,18 +87,22 @@ internal sealed unsafe class OutfitCreator(Plugin plugin)
                 var inventory = InventoryManager.Instance();
                 if (inventory == null || inventory->GetInventoryItemCount(QualityNormalizationPolicy.GlamourPrismId,false,false,false) < plan.Items.Count)
                 { Stop("幻象棱晶不足，未建立。"); return; }
-                InventoryType* containers = stackalloc InventoryType[11]; ushort* slots = stackalloc ushort[11];
-                for (var i = 0; i < 11; i++) { containers[i] = InventoryType.Invalid; slots[i] = 0; }
-                foreach (var item in plan.Items)
+                var sources = plan.Items.Select(item =>
                 {
-                    var slot = Array.IndexOf(plan.Definition.Pieces.ToArray(),item.ItemId);
-                    if (slot < 0 || !OutfitInventoryReader.TryResolveContainer(item.Location,out var type))
-                        throw new InvalidOperationException("装备与目标套装部位不符。");
-                    containers[slot] = type; slots[slot] = (ushort)(item.Slot - 1);
-                }
+                    if (!OutfitInventoryReader.TryResolveContainer(item.Location,out var type))
+                        throw new InvalidOperationException("装备来源无效。");
+                    return new CompletionItemKey(item.ItemId,(uint)type,(ushort)(item.Slot-1),item.HighQuality);
+                }).ToArray();
+                var packed = OutfitSubmissionLayout.Pack(plan.Definition.Pieces,sources,plan.HighQuality);
+                InventoryType* containers = stackalloc InventoryType[OutfitSubmissionLayout.Capacity];
+                ushort* slots = stackalloc ushort[OutfitSubmissionLayout.Capacity];
+                for (var i = 0; i < OutfitSubmissionLayout.Capacity; i++) { containers[i] = InventoryType.Invalid; slots[i] = 0; }
+                for (var i = 0; i < packed.Length; i++) { containers[i] = (InventoryType)packed[i].Container; slots[i] = packed[i].Slot; }
+                Plugin.Log.Information("Creating outfit {RawId} using {Count} packed sources: {Sources}",
+                    plan.RawId,packed.Length,string.Join(", ",packed.Select(key=>$"{key.ItemId}@{key.Container}:{key.Slot}")));
                 current = plan; waiting = true; deadline = now + 15_000;
-                Status = $"正在建立 {completed} / {total} 套：{plan.Definition.Name}，消耗 {plan.Items.Count} 个幻象棱晶。";
-                if (!manager->StoreNewOutfit(plan.Definition.Id,containers,slots)) Stop("游戏未接受建立套装，请检查原生收纳条件。");
+                Status = $"正在建立 {completed} / {total} 套：{plan.Definition.Name}，需 {plan.Items.Count} 个幻象棱晶。";
+                if (!manager->StoreNewOutfit(plan.RawId,containers,slots)) Stop("游戏未接受建立套装，请检查原生收纳条件。");
                 return;
             }
             Stop(skipped > 0 ? $"建立结束，跳过 {skipped} 套已变化的装备。" : "建立套装完成。");

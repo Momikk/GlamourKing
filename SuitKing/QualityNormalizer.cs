@@ -98,7 +98,8 @@ internal sealed unsafe class QualityNormalizer(Plugin plugin)
         var manager = MirageManager.Instance();
         var inventory = InventoryManager.Instance();
         if (manager == null || !manager->PrismBoxLoaded || inventory == null || candidate.RestoreMask == 0
-            || candidate.Stored.BoxIndex is < 0 or >= 800 || !candidate.Stored.HighQuality)
+            || candidate.Stored.BoxIndex is < 0 or >= 800 || !candidate.Stored.HighQuality
+            || candidate.PrismCount > OutfitSubmissionLayout.Capacity)
             throw new InvalidOperationException("套装数据未就绪，请重新预览。");
         if (manager->PrismBoxItemIds[candidate.Stored.BoxIndex] != candidate.RawStoredId)
             throw new InvalidOperationException("目标套装记录已改变，请重新预览。");
@@ -230,15 +231,12 @@ internal sealed unsafe class QualityNormalizer(Plugin plugin)
         var inventory = InventoryManager.Instance();
         if (inventory == null || inventory->GetInventoryItemCount(QualityNormalizationPolicy.GlamourPrismId, false, false, false) < handIns.Count)
         { Stop("幻象棱晶不足，未存回。"); return; }
-        InventoryType* containers = stackalloc InventoryType[11];
-        ushort* slots = stackalloc ushort[11];
-        for (var i = 0; i < 11; i++) { containers[i] = InventoryType.Invalid; slots[i] = 0; }
-        foreach (var key in handIns)
-        {
-            var index = Array.IndexOf(plan.Definition.Pieces.ToArray(), key.ItemId);
-            if (index < 0 || index >= 11) { Stop("装备不属于本次套装。"); return; }
-            containers[index] = (InventoryType)key.Container; slots[index] = key.Slot;
-        }
+        var packed = OutfitSubmissionLayout.Pack(plan.Definition.Pieces,handIns,false);
+        InventoryType* containers = stackalloc InventoryType[OutfitSubmissionLayout.Capacity];
+        ushort* slots = stackalloc ushort[OutfitSubmissionLayout.Capacity];
+        for (var i = 0; i < OutfitSubmissionLayout.Capacity; i++) { containers[i] = InventoryType.Invalid; slots[i] = 0; }
+        for (var i = 0; i < packed.Length; i++) { containers[i] = (InventoryType)packed[i].Container; slots[i] = packed[i].Slot; }
+        Plugin.Log.Information("Restoring NQ outfit {Id} using {Count} packed sources.",plan.Definition.Id,packed.Length);
         SetPhase(Phase.StoreWait);
         Status = "正在将 NQ 部件存回套装，等待游戏确认。";
         if (!manager->StoreNewOutfit(plan.Definition.Id, containers, slots)) Stop("游戏未接受 NQ 套装存入。");

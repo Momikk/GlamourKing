@@ -243,6 +243,41 @@ OutfitInfo? SharedFind(uint id) => new("shared","sets",[sleepSet,sharedSet]);
 var splitPlans = NewOutfitPlan.Build([newShoe,newPants,newShoe with {ItemId=40405,Slot=9}],SharedFind);
 Check(splitPlans.SelectMany(plan=>plan.Items).Distinct().Count()==splitPlans.Sum(plan=>plan.Items.Count),
     "Overlapping outfit memberships never reuse a physical source across planned sets");
+var shoeSource = new CompletionItemKey(40407,3205,2,false);
+var pantsSource = new CompletionItemKey(40406,0,3,false);
+var compactShoe = OutfitSubmissionLayout.Pack(sleepSet.Pieces,[shoeSource],false);
+Check(compactShoe.Length==1 && compactShoe[0]==shoeSource,
+    "A shoe-only outfit starts with the shoe instead of empty main-hand/head/body entries");
+var compactSleep = OutfitSubmissionLayout.Pack(sleepSet.Pieces,[shoeSource,pantsSource],false);
+Check(compactSleep.SequenceEqual([pantsSource,shoeSource]),
+    "Partial sleepwear restoration packs pants then shoes without sheet-column holes");
+Check(OutfitSubmissionLayout.Pack(sleepSet.Pieces,[shoeSource with {HighQuality=true}],true).Single().HighQuality,
+    "HQ native submission preserves source quality and uses the plan's HQ raw outfit ID");
+bool PackRejected(IReadOnlyList<uint> columns,IReadOnlyList<CompletionItemKey> keys,bool hq=false)
+{
+    try { OutfitSubmissionLayout.Pack(columns,keys,hq); return false; }
+    catch(InvalidOperationException) { return true; }
+}
+Check(PackRejected(sleepSet.Pieces,[]),"An empty native outfit request is never sent");
+Check(PackRejected(sleepSet.Pieces,[shoeSource,shoeSource]),"Duplicate packed sources are rejected");
+Check(PackRejected(sleepSet.Pieces,[shoeSource,pantsSource with {Container=shoeSource.Container,Slot=shoeSource.Slot}]),
+    "Two packed entries cannot reference the same physical slot");
+Check(PackRejected(sleepSet.Pieces,[shoeSource with {HighQuality=true}]),"Mixed or unexpected quality is rejected before submission");
+Check(PackRejected(sleepSet.Pieces,[shoeSource with {Container=9999}]),"Invalid inventory containers cannot terminate a packed request early");
+Check(PackRejected(sleepSet.Pieces,[shoeSource with {ItemId=0}]),"Empty sheet columns cannot masquerade as submitted gear");
+Check(PackRejected(sleepSet.Pieces,[shoeSource with {ItemId=99999}]),"Unrelated items cannot enter a packed outfit request");
+Check(PackRejected([40407],[shoeSource]),"Malformed sheet column count is rejected before native packing");
+var nineColumns = new uint[]{1,2,3,4,5,6,7,8,9,0,0};
+var nineSources = Enumerable.Range(1,9).Reverse().Select(i=>new CompletionItemKey((uint)i,0,(ushort)i,false)).ToArray();
+Check(OutfitSubmissionLayout.Pack(nineColumns,nineSources,false).Select(key=>key.ItemId).SequenceEqual(Enumerable.Range(1,9).Select(i=>(uint)i)),
+    "The native nine-entry limit is accepted and sorted into sheet order");
+Check(PackRejected(Enumerable.Range(1,11).Select(i=>(uint)i).ToArray(),Enumerable.Range(1,10).Select(i=>new CompletionItemKey((uint)i,0,(ushort)i,false)).ToArray()),
+    "More than nine submitted sources cannot overflow the native entry limit");
+var oversizedDefinition = new OutfitDefinition(555,"超出原生容量",Enumerable.Range(1,11).Select(i=>(uint)i).ToArray());
+var oversizedStored = new StoredOutfit(555,Enumerable.Range(1,9).Select(i=>(uint)i).ToHashSet(),true,1);
+var oversizedExtras = new uint[]{10,11}.Select(id=>newShoe with {ItemId=id,Assessment=new(OutfitStorageState.QualityConflict,"")}).ToArray();
+Check(QualityNormalizationPlan.First(oversizedExtras,[oversizedStored],_=>new("oversized","set",[oversizedDefinition]))==null,
+    "Normalization cannot take out or lower HQ gear when the final native request would exceed nine sources");
 if (args.Length == 0) return;
 using var game = new GameData(args[0], new LuminaOptions { DefaultExcelLanguage = Lumina.Data.Language.ChineseSimplified });
 var nativePrompts = game.Excel.GetSheet<Addon>(Lumina.Data.Language.ChineseSimplified)
@@ -293,3 +328,8 @@ var liveSleep = items.First(row => row.Name.ExtractText() == "朴素寝室拖鞋
 Check(liveCatalog.Get(liveSleep.RowId)?.Sets?.Any(set => set.Id == 45518 && set.Pieces[5] == 40406 && set.Pieces[6] == 40407) == true,
     "Actual CN sleepwear mapping preserves the pants and shoes restore-bit positions");
 Check(items.GetRow(QualityNormalizationPolicy.GlamourPrismId).Name.ExtractText() == "幻象棱晶", "Quality normalization prism ID matches the local CN resource");
+
+var infantryFeet = items.First(row=>row.Name.ExtractText()=="步兵长靴");
+var infantryDefinition = liveCatalog.Get(infantryFeet.RowId)!.Sets!.First(set=>set.Name=="步兵套装");
+Check(OutfitSubmissionLayout.Pack(infantryDefinition.Pieces,[new(infantryFeet.RowId,3205,0,false)],false).Single().ItemId==infantryFeet.RowId,
+    "Actual CN infantry boots produce one first-position submission despite preceding empty outfit slots");

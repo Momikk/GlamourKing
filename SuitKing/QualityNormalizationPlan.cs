@@ -24,7 +24,8 @@ internal sealed record QualityNormalizationPlan(OutfitDefinition Definition, Sto
                     && item.Condition >= 30000 && item.Assessment?.State == OutfitStorageState.QualityConflict
                     && definition.Pieces.Contains(item.ItemId) && !records[0].Pieces.Contains(item.ItemId))
                     .GroupBy(item => item.ItemId).Select(group => group.First()).ToArray();
-                if (extras.Length != 0) return new(definition, records[0], extras);
+                if (extras.Length != 0 && extras.Length + records[0].Pieces.Count <= OutfitSubmissionLayout.Capacity)
+                    return new(definition, records[0], extras);
             }
         }
         return null;

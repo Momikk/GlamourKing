@@ -9,6 +9,7 @@
   <ItemGroup>
     <Compile Include="../SuitKing/QualityNormalizationPlan.cs" Link="QualityNormalizationPlan.cs" />
     <Compile Include="../SuitKing/QualityNormalizationPolicy.cs" Link="QualityNormalizationPolicy.cs" />
+    <Compile Include="../SuitKing/OutfitSubmissionLayout.cs" Link="OutfitSubmissionLayout.cs" />
     <Compile Include="../SuitKing/NewOutfitPlan.cs" Link="NewOutfitPlan.cs" />
     <Compile Include="../SuitKing/CabinetPolicy.cs" Link="CabinetPolicy.cs" />
     <Compile Include="../SuitKing/OutfitStorageState.cs" Link="OutfitStorageState.cs" />

@@ -1,5 +1,13 @@
 # 更新记录
 
+## 0.1.0.20 — 2026-10-17
+
+· 修复“建立套装”及转 NQ 后存回没有实际存入的问题。
+
+### English
+
+· Fix Create Outfit and HQ-to-NQ restoration failing to store the selected equipment.
+
 ## 0.1.0.19 — 2026-10-17
 
 · 新增“建立套装”按钮，为未建立装备创建套装，支持中途停止。
